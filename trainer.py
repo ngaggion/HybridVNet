@@ -58,8 +58,8 @@ def trainer(train_dataset, val_dataset, model, config):
 
     model = model.to(device)
 
-    train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=config['batch_size'], shuffle=True, num_workers=0)
-    val_loader = torch.utils.data.DataLoader(val_dataset, batch_size=config['val_batch_size'], num_workers=0)
+    train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=config['batch_size'], shuffle=True, num_workers=4)
+    val_loader = torch.utils.data.DataLoader(val_dataset, batch_size=config['val_batch_size'], num_workers=2)
 
     optimizer = torch.optim.Adam(params=model.parameters(), lr=config['lr'], weight_decay=config['weight_decay'])
     
@@ -302,8 +302,8 @@ if __name__ == "__main__":
     parser.add_argument("--stepsize", default = 1, type = int)
     parser.add_argument("--gamma", default = 0.99, type = float)
 
-    parser.add_argument("--batch_size", default = 1, type = int)
-    parser.add_argument("--val_batch_size", default = 1, type = int)
+    parser.add_argument("--batch_size", default = 4, type = int)
+    parser.add_argument("--val_batch_size", default = 4, type = int)
     
     parser.add_argument("--K", default = 6, type = int)
     parser.add_argument("--w_edge", default = 0, type = float)
