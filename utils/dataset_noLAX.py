@@ -151,7 +151,7 @@ class CropArraysToSquareShape(object):
         sax_array = sample['Sax_Array']
         mesh = sample['Mesh']      
         
-        x, y, _ = mesh.points.mean(axis=0)
+        x, y, _ = mesh.mean(axis=0)
 
         x = int(x)
         y = int(y)
@@ -171,8 +171,8 @@ class CropArraysToSquareShape(object):
             y1 = array.shape[0]
             y0 = y1 - self.shape[0]
 
-        mesh.points[:,0] -= x0
-        mesh.points[:,1] -= y0
+        mesh[:,0] -= x0
+        mesh[:,1] -= y0
 
         sax_array = sax_array[y0:y1, x0:x1, :]
         
