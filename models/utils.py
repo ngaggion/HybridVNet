@@ -43,14 +43,14 @@ class residualBlock3D(nn.Module):
         if stride != 1 or in_channels != out_channels:
           self.skip = nn.Sequential(
             nn.Conv3d(in_channels=in_channels, out_channels=out_channels, kernel_size=1, stride=stride, bias=False),
-            nn.InstanceNorm3d(out_channels, track_running_stats=False))
+            nn.BatchNorm3d(out_channels, track_running_stats=False))
         else:
           self.skip = None
 
-        self.block = nn.Sequential(nn.InstanceNorm3d(in_channels, track_running_stats=False),
+        self.block = nn.Sequential(nn.BatchNorm3d(in_channels, track_running_stats=False),
                                    nn.ReLU(inplace=True),
                                    nn.Conv3d(in_channels, out_channels, 3, padding=1),
-                                   nn.InstanceNorm3d(out_channels, track_running_stats=False),
+                                   nn.BatchNorm3d(out_channels, track_running_stats=False),
                                    nn.ReLU(inplace=True),
                                    nn.Conv3d(out_channels, out_channels, 3, padding=1)
                                    )   
