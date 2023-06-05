@@ -156,20 +156,20 @@ class CropArraysToSquareShape(object):
         x = int(x)
         y = int(y)
 
-        x0 = x - self.shape[1]//2
+        x0 = x - 50
         x0 = max(0, x0)
-        y0 = y - self.shape[0]//2
+        y0 = y - 50
         y0 = max(0, y0)
 
-        x1 = x0 + self.shape[1]
-        if x1 > array.shape[1]:
-            x1 = array.shape[1]
-            x0 = x1 - self.shape[1] 
+        x1 = x0 + 100
+        if x1 > sax_array.shape[1]:
+            x1 = sax_array.shape[1]
+            x0 = x1 - 100 
                 
-        y1 = y0 + self.shape[0]
-        if y1 > array.shape[0]:
-            y1 = array.shape[0]
-            y0 = y1 - self.shape[0]
+        y1 = y0 + 100
+        if y1 > sax_array.shape[0]:
+            y1 = sax_array.shape[0]
+            y0 = y1 - 100
 
         mesh[:,0] -= x0
         mesh[:,1] -= y0
@@ -177,6 +177,7 @@ class CropArraysToSquareShape(object):
         sax_array = sax_array[y0:y1, x0:x1, :]
         
         sax_z_paddings = _get_both_paddings(SAX_IMAGE_SHAPE[2], sax_array.shape[2])
+        sax_array = np.pad(sax_array, ((0,0), (0,0), sax_z_paddings), 'constant', constant_values=0)
         mesh[:, 2] += sax_z_paddings[0]
         
         sample['Mesh'] = mesh

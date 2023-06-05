@@ -43,7 +43,7 @@ def setup_tensorboard_log_directory(tensorboard, config):
     folder = os.path.join(tensorboard, config['name'])
 
     if not os.path.exists(folder):
-        os.mkdir(folder)
+        os.makedirs(folder)
 
     with open(os.path.join(folder, 'config.json'), 'w') as f:
         config['device'] = str(config['device'])
@@ -250,7 +250,7 @@ def trainer(train_dataset, val_dataset, model, config):
         else:
             val_rate = 5
             
-        if epoch % val_rate == 0:
+        if epoch  % val_rate == 0:
             model.eval()
             val_loss_avg.append(0)
 
