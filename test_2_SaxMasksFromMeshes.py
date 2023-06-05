@@ -48,7 +48,6 @@ def get_grid(label, faces, subs):
     full_mesh = get_tmesh(label.copy(), faces, ["RV", "LV", "MVP", "AVP", "TVP", "PVP"], subs)
 
     grilla = np.zeros(full_mesh.shape, dtype=np.uint8)
-    grilla.shape
 
     rv_wall = get_tmesh(label.copy(), faces, ["RV"], subs)
     lv_Endo = get_tmesh(label.copy(), faces, ["LV", "MVP", "AVP"], subs)
@@ -116,8 +115,8 @@ def get_mask_image(mesh, faces, subs, sax):
     mask_img = np.zeros((sax.height, sax.width, sax.num_slices), dtype=np.uint8)
 
     # get slice index for z direction
-    slice_idx = sax.slice_gap * range(sax.num_slices) + sax.origin[2]
-
+    slice_idx = [sax.slice_gap * idx + sax.origin[2] for idx in range(sax.num_slices)]
+    
     # create image grid
     xr = np.arange(0, mask_img.shape[1], dtype=float) * sax.spacing[0] + sax.origin[0]
     yr = np.arange(0, mask_img.shape[0], dtype=float) * sax.spacing[1] + sax.origin[1]
@@ -150,8 +149,8 @@ if __name__ == "__main__":
     overwrite = True
     evaluate = True
     
-    faces = np.load("../Dataset/Meshes/DownsampledMeshes_files/faces_fhm_numpy.npy")
-    subs = np.loadtxt("../Dataset/Meshes/DownsampledMeshes_files/subparts_fhm.txt", dtype=str)
+    faces = np.load("../Dataset/SurfaceFiles/faces_fhm_numpy.npy")
+    subs = np.loadtxt("../Dataset/SurfaceFiles/subparts_fhm.txt", dtype=str)
 
     models = load_folder(input)
     
@@ -190,10 +189,16 @@ if __name__ == "__main__":
             for time in timesteps:
                 time_id = time.split("/")[-1]
                 
-                image_path = "../Dataset/Images/SAX_VTK/" + subject_id + "/image_SAX_" + time_id[-3:] + ".vtk"
+                image_path = "../Dataset/Subjects/" + subject_id + "/image/" + time_id + '/SAX'
                 image = SAXImage(image_path)
                 
                 mesh = np.load(os.path.join(time, "mesh.npy"))
+                
+                origin = np.array(image.origin)
+                direction_matrix = np.array(image.direction).reshape(3, 3)
+                inverse_direction_matrix = np.linalg.inv(direction_matrix)
+                mesh = np.dot((mesh - origin), inverse_direction_matrix.T) + origin
+        
                 mask_seg = get_mask_image(mesh, faces, subs, image).transpose(2,0,1)
                 
                 save_folder = os.path.join(out_path, subject_id, time_id)
@@ -219,7 +224,7 @@ if __name__ == "__main__":
                     dice_rv_Endo = dc(gt == 100, mask_seg == 100)
                     hausdorff_rv_Endo = HD(gt == 100, mask_seg == 100)
                     assd_value_rv_Endo = MCD(gt == 100, mask_seg == 100)
-
+                    
                     dataframe.loc[i] = [id, 
                         dice_myo, hausdorff_myo, assd_value_myo, 
                         dice_Endo, hausdorff_Endo, assd_value_Endo, 

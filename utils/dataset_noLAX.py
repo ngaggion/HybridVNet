@@ -422,3 +422,23 @@ class ToTorchTensors(object):
             'Sax_Array': sax_image_tensor,
             'Mesh': mesh_tensor
         }
+
+class ToTorchTensorsTest(object):
+    # The difference is that it returns also x0, y0 positions for the cropping and the ITK images
+    # Cannot be used into a dataloader
+    
+    def __call__(self, sample):
+        sax_image = sample['Sax_Array']
+        mesh = sample['Mesh']
+        
+        mesh[:, 0] /= sax_image.shape[0]
+        mesh[:, 1] /= sax_image.shape[1]
+        mesh[:, 2] /= sax_image.shape[2]
+        
+        sax_image_tensor = torch.from_numpy(sax_image.transpose(2, 0, 1)).unsqueeze(0).float()
+        mesh_tensor = torch.from_numpy(mesh).float()
+        
+        sample['Sax_Array'] = sax_image_tensor
+        sample['Mesh'] = mesh_tensor
+        
+        return sample

@@ -228,6 +228,9 @@ class CropArraysToSquareShape(object):
 
         mesh[:,0] -= x0
         mesh[:,1] -= y0
+        
+        sample['x0'] = x0
+        sample['y0'] = y0
 
         sax_array = sax_array[y0:y1, x0:x1, :]
         
@@ -592,3 +595,32 @@ class ToTorchTensors(object):
             'Lax4CH_Array': lax4ch_tensor,
             'Mesh': mesh_tensor
         }
+
+class ToTorchTensorsTest(object):
+    # The difference is that it returns also x0, y0 positions, and the ITK images
+    # Cannot be used into a dataloader
+    
+    def __call__(self, sample):
+        sax_image = sample['Sax_Array']
+        lax2ch_array = sample['Lax2CH_Array']
+        lax3ch_array = sample['Lax3CH_Array']
+        lax4ch_array = sample['Lax4CH_Array']
+        mesh = sample['Mesh']
+        
+        mesh[:, 0] /= sax_image.shape[0]
+        mesh[:, 1] /= sax_image.shape[1]
+        mesh[:, 2] /= sax_image.shape[2]
+        
+        sax_image_tensor = torch.from_numpy(sax_image.transpose(2, 0, 1)).unsqueeze(0).float()
+        lax2ch_tensor = torch.from_numpy(lax2ch_array.transpose(2, 0, 1)).float()
+        lax3ch_tensor = torch.from_numpy(lax3ch_array.transpose(2, 0, 1)).float()
+        lax4ch_tensor = torch.from_numpy(lax4ch_array.transpose(2, 0, 1)).float()
+        mesh_tensor = torch.from_numpy(mesh).float()
+        
+        sample['Sax_Array'] = sax_image_tensor
+        sample['Lax2CH_Array'] = lax2ch_tensor
+        sample['Lax3CH_Array'] = lax3ch_tensor
+        sample['Lax4CH_Array'] = lax4ch_tensor
+        sample['Mesh'] = mesh_tensor
+        
+        return sample
