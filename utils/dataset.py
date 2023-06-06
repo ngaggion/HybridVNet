@@ -278,12 +278,6 @@ def pad_or_crop_image_and_mesh(sax_array, mesh, new_sax_h, new_sax_w, SAX_IMAGE_
     max_w = np.max(mesh[:, 0])
     mesh_width = max_w - min_w  
 
-    print("Mesh height: ", mesh_height)
-    print("Mesh width: ", mesh_width)
-    
-    print("New sax height: ", new_sax_h)
-    print("New sax width: ", new_sax_w)
-
     # Adjust height
     if new_sax_h < SAX_IMAGE_SHAPE[0]:
         padding = _get_both_paddings(SAX_IMAGE_SHAPE[0], new_sax_h)
