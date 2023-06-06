@@ -214,10 +214,14 @@ def pad_or_crop_image_and_mesh(sax_array, mesh, new_sax_h, new_sax_w, SAX_IMAGE_
         mesh_limit = max_h - SAX_IMAGE_SHAPE[0]
         mesh_limit = int(round(max(mesh_limit, 0)))
 
-        if mesh_limit >= crop_left_limit:
-            crop_left_limit += 1          
-        
-        random_crop_left = np.random.randint(mesh_limit, crop_left_limit)
+        try:
+            random_crop_left = np.random.randint(mesh_limit, crop_left_limit)
+        except:
+            if mesh_limit == crop_left_limit:
+                random_crop_left = mesh_limit
+            elif mesh_limit > crop_left_limit:
+                random_crop_left = crop_left_limit
+                
         right_limit = random_crop_left + SAX_IMAGE_SHAPE[0]
         sax_array = sax_array[random_crop_left:right_limit, :, :]
         mesh[:, 1] -= random_crop_left 
@@ -236,10 +240,14 @@ def pad_or_crop_image_and_mesh(sax_array, mesh, new_sax_h, new_sax_w, SAX_IMAGE_
         mesh_limit = max_w - SAX_IMAGE_SHAPE[1]
         mesh_limit = int(round(max(mesh_limit, 0)))
 
-        if mesh_limit >= crop_left_limit:
-            crop_left_limit += 1              
+        try:
+            random_crop_left = np.random.randint(mesh_limit, crop_left_limit)
+        except:
+            if mesh_limit == crop_left_limit:
+                random_crop_left = mesh_limit
+            elif mesh_limit > crop_left_limit:
+                random_crop_left = crop_left_limit
         
-        random_crop_left = np.random.randint(mesh_limit, crop_left_limit)
         right_limit = random_crop_left + SAX_IMAGE_SHAPE[1]
         sax_array = sax_array[:, random_crop_left:right_limit, :]
         mesh[:, 0] -= random_crop_left
