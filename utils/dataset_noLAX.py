@@ -203,12 +203,25 @@ def pad_or_crop_image_and_mesh(sax_array, mesh, new_sax_h, new_sax_w, SAX_IMAGE_
         pad_h_2 = padding[0] + padding[1] - pad_h_1
         mesh[:, 1] += pad_h_1
         sax_array = np.pad(sax_array, ((pad_h_1, pad_h_2), (0, 0), (0, 0)), 'constant', constant_values=0)
-    elif new_sax_h > SAX_IMAGE_SHAPE[0]:
+        
+    elif new_sax_h > SAX_IMAGE_SHAPE[0]:        
         crop_amount = new_sax_h - SAX_IMAGE_SHAPE[0]
-        crop_left_limit = min(crop_amount, min_w)
-        random_crop_left = np.random.randint(0, crop_left_limit)
-        crop_right = crop_amount - random_crop_left
-        sax_array = sax_array[random_crop_left:-crop_right, :, :]
+        
+        # Ensure we don't crop the mesh from the left
+        crop_left_limit = min(crop_amount, int(min_h))
+        
+        # Ensure we don't crop the mesh from the right
+        mesh_limit = max_h - SAX_IMAGE_SHAPE[0]
+        mesh_limit = int(round(max(mesh_limit, 0)))
+
+        if mesh_limit == crop_left_limit and mesh_limit != 0:
+            mesh_limit -= 1
+        else:
+            crop_left_limit += 1            
+        
+        random_crop_left = np.random.randint(mesh_limit, crop_left_limit)
+        right_limit = random_crop_left + SAX_IMAGE_SHAPE[0]
+        sax_array = sax_array[random_crop_left:right_limit, :, :]
         mesh[:, 1] -= random_crop_left 
 
     # Adjust width
@@ -220,10 +233,19 @@ def pad_or_crop_image_and_mesh(sax_array, mesh, new_sax_h, new_sax_w, SAX_IMAGE_
         sax_array = np.pad(sax_array, ((0, 0), (pad_w_1, pad_w_2), (0, 0)), 'constant', constant_values=0)
     elif new_sax_w > SAX_IMAGE_SHAPE[1]:
         crop_amount = new_sax_w - SAX_IMAGE_SHAPE[1]
-        crop_left_limit = min(crop_amount, min_h)
-        random_crop_left = np.random.randint(0, crop_left_limit)
-        crop_right = crop_amount - random_crop_left
-        sax_array = sax_array[:, random_crop_left:-crop_right, :]
+        crop_left_limit = min(crop_amount, int(min_w))
+        # Ensure we don't crop the mesh from the right
+        mesh_limit = max_w - SAX_IMAGE_SHAPE[1]
+        mesh_limit = int(round(max(mesh_limit, 0)))
+
+        if mesh_limit == crop_left_limit and mesh_limit != 0:
+            mesh_limit -= 1
+        else:
+            crop_left_limit += 1            
+        
+        random_crop_left = np.random.randint(mesh_limit, crop_left_limit)
+        right_limit = random_crop_left + SAX_IMAGE_SHAPE[1]
+        sax_array = sax_array[:, random_crop_left:right_limit, :]
         mesh[:, 0] -= random_crop_left
         
     # Always pad the z axis to the desired shape
@@ -232,6 +254,7 @@ def pad_or_crop_image_and_mesh(sax_array, mesh, new_sax_h, new_sax_w, SAX_IMAGE_
     mesh[:, 2] += padding[0]
         
     return sax_array, mesh
+
 
 def pad_or_crop_image(image, output_shape):
     input_shape = image.shape[:2]
