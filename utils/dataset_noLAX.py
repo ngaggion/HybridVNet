@@ -214,10 +214,8 @@ def pad_or_crop_image_and_mesh(sax_array, mesh, new_sax_h, new_sax_w, SAX_IMAGE_
         mesh_limit = max_h - SAX_IMAGE_SHAPE[0]
         mesh_limit = int(round(max(mesh_limit, 0)))
 
-        if mesh_limit == crop_left_limit and mesh_limit != 0:
-            mesh_limit -= 1
-        else:
-            crop_left_limit += 1            
+        if mesh_limit >= crop_left_limit:
+            crop_left_limit += 1          
         
         random_crop_left = np.random.randint(mesh_limit, crop_left_limit)
         right_limit = random_crop_left + SAX_IMAGE_SHAPE[0]
@@ -238,10 +236,8 @@ def pad_or_crop_image_and_mesh(sax_array, mesh, new_sax_h, new_sax_w, SAX_IMAGE_
         mesh_limit = max_w - SAX_IMAGE_SHAPE[1]
         mesh_limit = int(round(max(mesh_limit, 0)))
 
-        if mesh_limit == crop_left_limit and mesh_limit != 0:
-            mesh_limit -= 1
-        else:
-            crop_left_limit += 1            
+        if mesh_limit >= crop_left_limit:
+            crop_left_limit += 1              
         
         random_crop_left = np.random.randint(mesh_limit, crop_left_limit)
         right_limit = random_crop_left + SAX_IMAGE_SHAPE[1]
