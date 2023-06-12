@@ -143,6 +143,40 @@ def save_nii(filename, data,spacing):
 from utils.segmentationMetrics import HD, MCD
 from medpy.metric import dc
 import json
+from functools import partial
+from multiprocessing import Pool
+
+def process_subject(subject, out_path, faces, subs, evaluate, overwrite):
+    subject_id = subject.split("/")[-1]
+    
+    timesteps = load_folder(subject)
+    for time in timesteps:
+        time_id = time.split("/")[-1]
+        
+        image_path = "../Dataset/Subjects/" + subject_id + "/image/" + time_id + '/SAX'
+        
+        print(image_path)
+        
+        image = SAXImage(image_path)
+        
+        mesh = np.load(os.path.join(time, "mesh.npy"))
+        
+        origin = np.array(image.origin)
+        direction_matrix = np.array(image.direction).reshape(3, 3)
+        inverse_direction_matrix = np.linalg.inv(direction_matrix)
+        mesh = np.dot((mesh - origin), inverse_direction_matrix.T) + origin
+
+        mask_seg = get_mask_image(mesh, faces, subs, image).transpose(2,0,1)
+        
+        save_folder = os.path.join(out_path, subject_id, time_id)
+        if not os.path.exists(save_folder) or overwrite:
+            os.makedirs(save_folder, exist_ok=True)
+            
+        save_path = os.path.join(save_folder, "mask.nii.gz")
+        save_nii(save_path, mask_seg, [image.spacing[0],image.spacing[1],float(image.slice_gap)])
+    
+    return
+        
 
 if __name__ == "__main__":
     input = "../Predictions/Surface/"
@@ -176,66 +210,16 @@ if __name__ == "__main__":
             os.makedirs(out_path, exist_ok=True)
             
         mesh_path = os.path.join(model_path, "Meshes")
-        
         subjects = load_folder(mesh_path)
-        j = 0
         
-        for subject in subjects:
-            print('\r', 'Subject', j + 1, 'of', len(subjects), end='')
-            j+=1
-            subject_id = subject.split("/")[-1]
+        # Create a partial function with the common arguments
+        func = partial(process_subject, out_path=out_path, faces=faces, subs=subs, evaluate=evaluate, overwrite=overwrite)
+        
+        with Pool(8) as p:
+            p.map(func, subjects)
             
-            timesteps = load_folder(subject)
-            for time in timesteps:
-                time_id = time.split("/")[-1]
-                
-                image_path = "../Dataset/Subjects/" + subject_id + "/image/" + time_id + '/SAX'
-                image = SAXImage(image_path)
-                
-                mesh = np.load(os.path.join(time, "mesh.npy"))
-                
-                origin = np.array(image.origin)
-                direction_matrix = np.array(image.direction).reshape(3, 3)
-                inverse_direction_matrix = np.linalg.inv(direction_matrix)
-                mesh = np.dot((mesh - origin), inverse_direction_matrix.T) + origin
-        
-                mask_seg = get_mask_image(mesh, faces, subs, image).transpose(2,0,1)
-                
-                save_folder = os.path.join(out_path, subject_id, time_id)
-                if not os.path.exists(save_folder) or overwrite:
-                    os.makedirs(save_folder, exist_ok=True)
-                    
-                save_path = os.path.join(save_folder, "mask.nii.gz")
-                save_nii(save_path, mask_seg, [image.spacing[0],image.spacing[1],float(image.slice_gap)])
-                
-                if evaluate:
-                    gt_path = os.path.join("../Dataset/LV_RV_Masks", subject_id, time_id, "mask.nii.gz")
-                    gt = sitk.ReadImage(gt_path)
-                    gt = sitk.GetArrayFromImage(gt)
-                    
-                    dice_myo = dc(gt == 250, mask_seg == 250)
-                    hausdorff_myo = HD(gt == 250, mask_seg == 250)
-                    assd_value_myo = MCD(gt == 250, mask_seg == 250)
-                    
-                    dice_Endo = dc(gt == 50, mask_seg == 50)
-                    hausdorff_Endo = HD(gt == 50, mask_seg == 50)
-                    assd_value_Endo = MCD(gt == 50, mask_seg == 50)
-
-                    dice_rv_Endo = dc(gt == 100, mask_seg == 100)
-                    hausdorff_rv_Endo = HD(gt == 100, mask_seg == 100)
-                    assd_value_rv_Endo = MCD(gt == 100, mask_seg == 100)
-                    
-                    dataframe.loc[i] = [id, 
-                        dice_myo, hausdorff_myo, assd_value_myo, 
-                        dice_Endo, hausdorff_Endo, assd_value_Endo, 
-                        dice_rv_Endo, hausdorff_rv_Endo, assd_value_rv_Endo]
-                    
-                    i = i + 1
-        
         print("")
-        if evaluate:
-            dataframe.to_csv(os.path.join(model_path, "metrics.csv"), index=False)
-        
+
         if config['finished']:
             # create a segmented.txt file to indicate that the model has been segmented
             with open(os.path.join(model_path.replace('Predictions/Surface', 'Code/weights'), "segmented_mask.txt"), "w") as f:
