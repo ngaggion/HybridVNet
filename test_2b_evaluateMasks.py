@@ -32,7 +32,7 @@ def evaluate_model(models_path):
                 mask_path = os.path.join(time, "mask.nii.gz")
                 mask_seg = sitk.GetArrayFromImage(sitk.ReadImage(mask_path))
                 
-                gt_path = os.path.join("../Dataset/LV_RV_Masks", subject.split('/')[-1], time.split('/')[-1], "mask.nii.gz")
+                gt_path = os.path.join("../Dataset/Subjects", subject.split('/')[-1], "mesh", time.split('/')[-1], "lv_rv_mask.nii.gz")
                 gt = sitk.GetArrayFromImage(sitk.ReadImage(gt_path))
                 
                 dice_myo = dc(gt == 250, mask_seg == 250)
