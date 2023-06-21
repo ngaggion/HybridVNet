@@ -331,6 +331,8 @@ if __name__ == "__main__":
 
     parser.add_argument("--latents3D", default = 64, type = int)
     parser.add_argument("--latents2D", default = 16, type = int)
+    
+    parser.add_argument("--rotate", default=10, type=int)
 
     config = parser.parse_args()
     config = vars(config)
@@ -383,8 +385,8 @@ if __name__ == "__main__":
         all_transforms_train = transforms.Compose([
                                     AlignMeshWithSaxImage(),
                                     RandomScalingBoth(),
-                                    AugColor(0.5),
-                                    Rotate(5),
+                                    Rotate(config['rotate']),
+                                    AugColor(0.2),
                                     ToTorchTensors()
                                 ])
         
@@ -401,8 +403,8 @@ if __name__ == "__main__":
         all_transforms_train = transforms.Compose([
                                     AlignMeshWithSaxImage(),
                                     RandomCropBoth(),
-                                    AugColor(0.5),
-                                    Rotate(5),
+                                    Rotate(config['rotate']),
+                                    AugColor(0.2),
                                     ToTorchTensors()
                                 ])
         
