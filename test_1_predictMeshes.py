@@ -4,6 +4,8 @@ import pickle as pkl
 import numpy as np
 import torch
 from models.hybridGNet_3D import HybridGNet3D
+from models.hybridGNet_3D_noLAX import HybridGNet3D as HybridGNet3D_noLAX
+
 from models.utils import scipy_to_torch_sparse
 from torchvision import transforms
 
@@ -42,7 +44,10 @@ def configure_model(config):
     
     # Initialize and load model
     
-    model = HybridGNet3D(config, D_t, U_t, A_t, skip_connections).float().to(device)
+    if "no_lax" in config['name']:
+        model = HybridGNet3D_noLAX(config, D_t, U_t, A_t, skip_connections).float().to(device)
+    else:    
+        model = HybridGNet3D(config, D_t, U_t, A_t, skip_connections).float().to(device)
 
     return model
 
@@ -120,7 +125,10 @@ def segmentDataset(config, model, test_dataset, meshes_path, model_out_path):
             subj_time_path = os.path.join(meshes_path, subject.astype('str'), time)
             os.makedirs(subj_time_path, exist_ok=True)
 
-            output, _ = model(image.unsqueeze(0), lax2ch.unsqueeze(0), lax3ch.unsqueeze(0), lax4ch.unsqueeze(0))
+            if "no_lax" in config['name']:
+                output, _ = model(image.unsqueeze(0))
+            else:
+                output, _ = model(image.unsqueeze(0), lax2ch.unsqueeze(0), lax3ch.unsqueeze(0), lax4ch.unsqueeze(0))
                 
             mesh = go_back(config, vtk, output.squeeze(0).cpu().numpy(), x0, y0)
             
