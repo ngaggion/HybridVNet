@@ -71,6 +71,14 @@ def go_back(config, image, mesh_v, x0=0, y0=0):
     direction_matrix = np.array(image.direction).reshape(3, 3)
 
     outh, outw = config['h'], config['w']
+    
+    original_h, original_w = image.height, image.width
+    
+    if config['full']:
+        # We have to remove the padding
+        x0 = - get_both_paddings(210, original_w)[0]
+        y0 = - get_both_paddings(210, original_h)[0]
+           
     z = image.num_slices
     dz = get_both_paddings(16, z)
     
@@ -129,7 +137,7 @@ def segmentDataset(config, model, test_dataset, meshes_path, model_out_path):
                 output, _ = model(image.unsqueeze(0))
             else:
                 output, _ = model(image.unsqueeze(0), lax2ch.unsqueeze(0), lax3ch.unsqueeze(0), lax4ch.unsqueeze(0))
-                
+                        
             mesh = go_back(config, vtk, output.squeeze(0).cpu().numpy(), x0, y0)
             
             gt_path = "../Dataset/Subjects/" + subject.astype('str') + "/mesh/" + time + "/surface.npy"
@@ -140,13 +148,14 @@ def segmentDataset(config, model, test_dataset, meshes_path, model_out_path):
             
             MSE, MAE, RMSE = evaluate(target, mesh)
             evalDF.loc[j] = [subject, time, 'Full', MSE, MAE, RMSE]
+
             j+=1
             
             for i in range(0, len(subparts)):
                 sub_mesh = mesh[subpart_indices[i]]
                 sub_gt = target[subpart_indices[i]]
                 MSE, MAE, RMSE = evaluate(sub_gt, sub_mesh)
-                evalDF.loc[j] = [subject, time, subparts[i], MSE, MAE, RMSE]
+                evalDF.loc[j] = [subject, time, subparts[i], MSE, MAE, RMSE]                
                 j+=1
                 
     evalDF.to_csv(os.path.join(model_out_path, 'eval.csv'))
