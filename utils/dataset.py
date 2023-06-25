@@ -594,6 +594,21 @@ class Rotate(object):
         sample['Mesh'] = mesh
         
         return sample
+    
+    
+class CropSax(object):
+    def __call__(self, sample):
+        SAX_IMAGE_SHAPE = (100, 100, 16)
+        sax_array = sample['Sax_Array']
+        mesh = sample['Mesh']
+        
+        sax_array, mesh = pad_or_crop_image_and_mesh(sax_array, mesh, 210, 210, SAX_IMAGE_SHAPE)
+        
+        sample['Sax_Array'] = sax_array
+        sample['Mesh'] = mesh
+        
+        return sample
+        
 
 
 class ToTorchTensors(object):
@@ -621,6 +636,7 @@ class ToTorchTensors(object):
             'Lax4CH_Array': lax4ch_tensor,
             'Mesh': mesh_tensor
         }
+       
 
 class ToTorchTensorsTest(object):
     # The difference is that it returns also x0, y0 positions, and the ITK images

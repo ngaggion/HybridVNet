@@ -20,7 +20,7 @@ from torch.optim.lr_scheduler import StepLR
 from torch.utils.tensorboard import SummaryWriter
 from torchvision import transforms
 from utils.dataset import (CardiacImageMeshDataset, PadArraysToSquareShape, CropArraysToSquareShape, RandomCropBoth,
-                           RandomScalingBoth, Rotate, ToTorchTensors, AugColor, AlignMeshWithSaxImage)
+                           RandomScalingBoth, Rotate, ToTorchTensors, AugColor, AlignMeshWithSaxImage, CropSax)
                            
 
 np.random.seed(12)
@@ -402,8 +402,9 @@ if __name__ == "__main__":
         
         all_transforms_train = transforms.Compose([
                                     AlignMeshWithSaxImage(),
-                                    RandomCropBoth(),
+                                    RandomScalingBoth(),
                                     Rotate(config['rotate']),
+                                    CropSax(),
                                     AugColor(0.2),
                                     ToTorchTensors()
                                 ])
