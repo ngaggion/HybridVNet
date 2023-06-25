@@ -18,11 +18,11 @@ class CardiacImageMeshDataset(Dataset):
         subjects = csv['subject'].unique()
         np.random.seed(12)
         np.random.shuffle(subjects)
-
+        
         if mode == 'Training':
-            self.subjects = subjects[:int(len(subjects)*0.8)]
+            self.subjects = subjects[:int(len(subjects)*0.9)]
         elif mode == 'Validation':
-            self.subjects = subjects[int(len(subjects)*0.8):]
+            self.subjects = subjects[int(len(subjects)*0.9):]
         else:
             self.subjects = subjects
 

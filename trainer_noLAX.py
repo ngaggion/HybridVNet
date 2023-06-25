@@ -210,8 +210,6 @@ def trainer(train_dataset, val_dataset, model, config):
                 t2 = time.time()
                 print('SubEpoch %s, Time %.6f, Average Loss %.6f, Average KLD Loss %.6f, Average Rec Loss %.6f' % (num_batches, t2-t0, train_loss_avg[-1] / num_batches, train_kld_loss_avg[-1] / num_batches, train_rec_loss_avg[-1] / num_batches))
                 t0 = time.time()
-            
-            break
                 
         gc.collect()            
 
@@ -266,8 +264,6 @@ def trainer(train_dataset, val_dataset, model, config):
 
                     val_loss_avg[-1] += loss_rec
                     num_batches += 1
-                    
-                    break
 
             val_loss_avg[-1] /= num_batches
             t2 = time.time()

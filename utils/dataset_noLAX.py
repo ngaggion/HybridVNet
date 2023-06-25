@@ -19,9 +19,9 @@ class CardiacImageMeshDataset(Dataset):
         np.random.shuffle(subjects)
 
         if mode == 'Training':
-            self.subjects = subjects[:int(len(subjects)*0.8)]
+            self.subjects = subjects[:int(len(subjects)*0.9)]
         elif mode == 'Validation':
-            self.subjects = subjects[int(len(subjects)*0.8):]
+            self.subjects = subjects[int(len(subjects)*0.9):]
         else:
             self.subjects = subjects
 
