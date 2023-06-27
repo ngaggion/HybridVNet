@@ -64,7 +64,12 @@ class CardiacImageMeshDataset(Dataset):
         
         if self.transform:
             sample = self.transform(sample)
-
+        
+        sax_shape = sample["Sax_Array"].shape
+        
+        if sax_shape[0] == 0 or sax_shape[1] == 0 or sax_shape[2] == 0 or sax_shape[3] == 0:
+            return self.__getitem__(idx)          
+        
         return sample
     
 
@@ -195,6 +200,11 @@ def pad_or_crop_image_and_mesh(sax_array, mesh, new_sax_h, new_sax_w, SAX_IMAGE_
     min_w = np.min(mesh[:, 0])
     max_w = np.max(mesh[:, 0])
     mesh_width = max_w - min_w  
+    
+    if mesh_height > SAX_IMAGE_SHAPE[0]:
+        print("Height bigger than ROI")
+    elif mesh_width > SAX_IMAGE_SHAPE[1]:
+        print("Width bigger than ROI")
 
     # Adjust height
     if new_sax_h < SAX_IMAGE_SHAPE[0]:
@@ -223,6 +233,11 @@ def pad_or_crop_image_and_mesh(sax_array, mesh, new_sax_h, new_sax_w, SAX_IMAGE_
                 random_crop_left = crop_left_limit
                 
         right_limit = random_crop_left + SAX_IMAGE_SHAPE[0]
+        
+        if right_limit >= new_sax_h:
+            right_limit = new_sax_h
+            random_crop_left = new_sax_h - SAX_IMAGE_SHAPE[0]
+            
         sax_array = sax_array[random_crop_left:right_limit, :, :]
         mesh[:, 1] -= random_crop_left 
 
@@ -233,6 +248,7 @@ def pad_or_crop_image_and_mesh(sax_array, mesh, new_sax_h, new_sax_w, SAX_IMAGE_
         pad_w_2 = padding[0] + padding[1] - pad_w_1
         mesh[:, 0] += pad_w_1
         sax_array = np.pad(sax_array, ((0, 0), (pad_w_1, pad_w_2), (0, 0)), 'constant', constant_values=0)
+        
     elif new_sax_w > SAX_IMAGE_SHAPE[1]:
         crop_amount = new_sax_w - SAX_IMAGE_SHAPE[1]
         crop_left_limit = min(crop_amount, int(min_w))
@@ -249,6 +265,11 @@ def pad_or_crop_image_and_mesh(sax_array, mesh, new_sax_h, new_sax_w, SAX_IMAGE_
                 random_crop_left = crop_left_limit
         
         right_limit = random_crop_left + SAX_IMAGE_SHAPE[1]
+        
+        if right_limit >= new_sax_w:
+            right_limit = new_sax_w
+            random_crop_left = new_sax_w - SAX_IMAGE_SHAPE[1]
+            
         sax_array = sax_array[:, random_crop_left:right_limit, :]
         mesh[:, 0] -= random_crop_left
         
@@ -308,8 +329,8 @@ class RandomScaling(object):
         sax_array = sample['Sax_Array']
         mesh = sample['Mesh']
               
-        resize_h_factor = np.random.uniform(0.80, 1.25)
-        resize_w_factor = np.random.uniform(0.80, 1.25)
+        resize_h_factor = np.random.uniform(0.70, 1.30)
+        resize_w_factor = np.random.uniform(0.70, 1.30)
                 
         sax_h, sax_w, sax_z = sax_array.shape
         new_sax_h = int(round(sax_h * resize_h_factor, 0))
@@ -347,8 +368,8 @@ class RandomCrop(object):
         sax_array = sample['Sax_Array']
         mesh = sample['Mesh']
               
-        resize_h_factor = np.random.uniform(0.80, 1.25)
-        resize_w_factor = np.random.uniform(0.80, 1.25)
+        resize_h_factor = np.random.uniform(0.70, 1.30)
+        resize_w_factor = np.random.uniform(0.70, 1.30)
                 
         sax_h, sax_w, sax_z = sax_array.shape
         new_sax_h = int(round(sax_h * resize_h_factor, 0))
@@ -372,7 +393,22 @@ class RandomCrop(object):
         sample['Mesh'] = mesh
         
         return sample
-    
+
+class CropSax(object):
+    def __call__(self, sample):
+        SAX_IMAGE_SHAPE = (100, 100, 16)
+        
+        sax_array = sample['Sax_Array']
+        mesh = sample['Mesh']
+        
+        h, w = sax_array.shape[:2]
+        
+        sax_array, mesh = pad_or_crop_image_and_mesh(sax_array, mesh, h, w, SAX_IMAGE_SHAPE)
+        
+        sample['Sax_Array'] = sax_array
+        sample['Mesh'] = mesh
+        
+        return sample
 
 class AugColor(object):
     @staticmethod

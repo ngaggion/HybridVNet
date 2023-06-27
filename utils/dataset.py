@@ -96,7 +96,7 @@ class CardiacImageMeshDataset(Dataset):
         
         sax_shape = sample["Sax_Array"].shape
         
-        if sax_shape[0] == 0 or sax_shape[1] == 0 or sax_shape[2] == 0:
+        if sax_shape[0] == 0 or sax_shape[1] == 0 or sax_shape[2] == 0 or sax_shape[3] == 0:
             return self.__getitem__(idx)          
 
         return sample
@@ -430,8 +430,8 @@ class RandomScalingBoth(object):
         sax_array = sample['Sax_Array']
         mesh = sample['Mesh']
               
-        resize_h_factor = np.random.uniform(0.80, 1.20)
-        resize_w_factor = np.random.uniform(0.80, 1.20)
+        resize_h_factor = np.random.uniform(0.70, 1.30)
+        resize_w_factor = np.random.uniform(0.70, 1.30)
                 
         sax_h, sax_w, sax_z = sax_array.shape
         new_sax_h = int(round(sax_h * resize_h_factor, 0))
@@ -493,8 +493,8 @@ class RandomCropBoth(object):
         sax_array = sample['Sax_Array']
         mesh = sample['Mesh']
               
-        resize_h_factor = np.random.uniform(0.80, 1.25)
-        resize_w_factor = np.random.uniform(0.80, 1.25)
+        resize_h_factor = np.random.uniform(0.70, 1.30)
+        resize_w_factor = np.random.uniform(0.70, 1.30)
                 
         sax_h, sax_w, sax_z = sax_array.shape
         new_sax_h = int(round(sax_h * resize_h_factor, 0))
@@ -619,10 +619,13 @@ class Rotate(object):
 class CropSax(object):
     def __call__(self, sample):
         SAX_IMAGE_SHAPE = (100, 100, 16)
+        
         sax_array = sample['Sax_Array']
         mesh = sample['Mesh']
         
-        sax_array, mesh = pad_or_crop_image_and_mesh(sax_array, mesh, 210, 210, SAX_IMAGE_SHAPE)
+        h, w = sax_array.shape[:2]
+        
+        sax_array, mesh = pad_or_crop_image_and_mesh(sax_array, mesh, h, w, SAX_IMAGE_SHAPE)
         
         sample['Sax_Array'] = sax_array
         sample['Mesh'] = mesh
