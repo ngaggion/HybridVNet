@@ -433,7 +433,7 @@ if __name__ == "__main__":
     model = HybridGNet3D(config, D_t, U_t, A_t, skip_connections).float()
 
     if config['load'] != "":
-        model.load_state_dict(torch.load("Training/" + config['load'] + "/bestMSE.pt"), strict=False)
+        model.load_state_dict(torch.load("weights/" + config['load'] + "/final.pt"), strict=False)
         print('Model loaded')
 
     # Train the model
