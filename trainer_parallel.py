@@ -59,8 +59,8 @@ def trainer(train_dataset, val_dataset, models, names, configs, config):
     for model in models:
         model = model.to(device)
 
-    train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=config['batch_size'], shuffle=True, num_workers=4)
-    val_loader = torch.utils.data.DataLoader(val_dataset, batch_size=config['val_batch_size'], num_workers=2)
+    train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=config['batch_size'], shuffle=True, num_workers=2, pin_memory=True)
+    val_loader = torch.utils.data.DataLoader(val_dataset, batch_size=config['val_batch_size'], num_workers=0, pin_memory=True)
     
     optimizers = []
     for model in models:
@@ -329,7 +329,7 @@ if __name__ == "__main__":
     parser.add_argument("--latents3D", default = 64, type = int)
     parser.add_argument("--latents2D", default = 16, type = int)
     
-    parser.add_argument("--rotate", default=10, type=int)
+    parser.add_argument("--rotate", default=30, type=int)
 
     config = parser.parse_args()
     config = vars(config)
