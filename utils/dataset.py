@@ -652,6 +652,11 @@ class ToTorchTensors(object):
         lax4ch_tensor = torch.from_numpy(lax4ch_array.transpose(2, 0, 1)).float()
         mesh_tensor = torch.from_numpy(mesh).float()
         
+        sax_image_tensor = (sax_image_tensor - sax_image_tensor.min()) / (sax_image_tensor.max() - sax_image_tensor.min())
+        lax2ch_tensor = (lax2ch_tensor - lax2ch_tensor.min()) / (lax2ch_tensor.max() - lax2ch_tensor.min())
+        lax3ch_tensor = (lax3ch_tensor - lax3ch_tensor.min()) / (lax3ch_tensor.max() - lax3ch_tensor.min())
+        lax4ch_tensor = (lax4ch_tensor - lax4ch_tensor.min()) / (lax4ch_tensor.max() - lax4ch_tensor.min())
+        
         return {
             'Sax_Array': sax_image_tensor,
             'Lax2CH_Array': lax2ch_tensor,
@@ -681,6 +686,11 @@ class ToTorchTensorsTest(object):
         lax3ch_tensor = torch.from_numpy(lax3ch_array.transpose(2, 0, 1)).float()
         lax4ch_tensor = torch.from_numpy(lax4ch_array.transpose(2, 0, 1)).float()
         mesh_tensor = torch.from_numpy(mesh).float()
+        
+        sax_image_tensor = (sax_image_tensor - sax_image_tensor.min()) / (sax_image_tensor.max() - sax_image_tensor.min())
+        lax2ch_tensor = (lax2ch_tensor - lax2ch_tensor.min()) / (lax2ch_tensor.max() - lax2ch_tensor.min())
+        lax3ch_tensor = (lax3ch_tensor - lax3ch_tensor.min()) / (lax3ch_tensor.max() - lax3ch_tensor.min())
+        lax4ch_tensor = (lax4ch_tensor - lax4ch_tensor.min()) / (lax4ch_tensor.max() - lax4ch_tensor.min())
         
         sample['Sax_Array'] = sax_image_tensor
         sample['Lax2CH_Array'] = lax2ch_tensor

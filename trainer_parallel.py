@@ -442,19 +442,31 @@ if __name__ == "__main__":
     
     models.append(HybridGNet3D(config1, D_t, U_t, A_t, skip_connections).float())
     names.append(config1['name'])
-    configs.append(config1)
+    configs.append(config1)    
     
     config2 = config.copy()
-    config2['name'] = 'WDS_1_WL_0.01_3D_64_2D_16_KL_1e-6'
+    config2['name'] = 'WDS_1_WL_0.01_3D_64_2D_16_KL_1e-5'
     config2['latents3D'] = 64
     config2['latents2D'] = 16
-    config2['kld_weight'] = 1e-6
+    config2['kld_weight'] = 1e-5
     config2['w_ds'] = 1
     config2['w_laplacian'] = 0.01
     
     models.append(HybridGNet3D(config2, D_t, U_t, A_t, skip_connections).float())
     names.append(config2['name'])
     configs.append(config2)
+    
+    config3 = config.copy()
+    config3['name'] = 'WDS_1_WL_0.01_3D_64_2D_16_KL_1e-6'
+    config3['latents3D'] = 64
+    config3['latents2D'] = 16
+    config3['kld_weight'] = 1e-6
+    config3['w_ds'] = 1
+    config3['w_laplacian'] = 0.01
+    
+    models.append(HybridGNet3D(config3, D_t, U_t, A_t, skip_connections).float())
+    names.append(config3['name'])
+    configs.append(config3)
     
     # Train the model
     trainer(train_dataset, val_dataset, models, names, configs, config)
