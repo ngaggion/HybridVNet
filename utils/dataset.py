@@ -430,8 +430,8 @@ class RandomScalingBoth(object):
         sax_array = sample['Sax_Array']
         mesh = sample['Mesh']
               
-        resize_h_factor = np.random.uniform(0.70, 1.30)
-        resize_w_factor = np.random.uniform(0.70, 1.30)
+        resize_h_factor = np.random.uniform(0.90, 1.20)
+        resize_w_factor = np.random.uniform(0.90, 1.20)
                 
         sax_h, sax_w, sax_z = sax_array.shape
         new_sax_h = int(round(sax_h * resize_h_factor, 0))
@@ -493,8 +493,8 @@ class RandomCropBoth(object):
         sax_array = sample['Sax_Array']
         mesh = sample['Mesh']
               
-        resize_h_factor = np.random.uniform(0.70, 1.30)
-        resize_w_factor = np.random.uniform(0.70, 1.30)
+        resize_h_factor = np.random.uniform(0.90, 1.20)
+        resize_w_factor = np.random.uniform(0.90, 1.20)
                 
         sax_h, sax_w, sax_z = sax_array.shape
         new_sax_h = int(round(sax_h * resize_h_factor, 0))
@@ -651,11 +651,6 @@ class ToTorchTensors(object):
         lax3ch_tensor = torch.from_numpy(lax3ch_array.transpose(2, 0, 1)).float()
         lax4ch_tensor = torch.from_numpy(lax4ch_array.transpose(2, 0, 1)).float()
         mesh_tensor = torch.from_numpy(mesh).float()
-        
-        sax_image_tensor = (sax_image_tensor - sax_image_tensor.min()) / (sax_image_tensor.max() - sax_image_tensor.min())
-        lax2ch_tensor = (lax2ch_tensor - lax2ch_tensor.min()) / (lax2ch_tensor.max() - lax2ch_tensor.min())
-        lax3ch_tensor = (lax3ch_tensor - lax3ch_tensor.min()) / (lax3ch_tensor.max() - lax3ch_tensor.min())
-        lax4ch_tensor = (lax4ch_tensor - lax4ch_tensor.min()) / (lax4ch_tensor.max() - lax4ch_tensor.min())
         
         return {
             'Sax_Array': sax_image_tensor,

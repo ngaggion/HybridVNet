@@ -266,7 +266,7 @@ def trainer(train_dataset, val_dataset, models, names, configs, config):
                 print('Epoch [%d / %d] validation average reconstruction error: %.6f' % (epoch, config['epochs'], val_loss_avg[j]))
                 
                 if val_loss_avg[j] < best_mse[j]:
-                    best_mse = val_loss_avg[j]
+                    best_mse[j] = val_loss_avg[j]
                     print('Model Saved MSE')
                     torch.save(models[j].state_dict(), os.path.join(folders[j],  "bestMSE.pt"))
                     
@@ -329,7 +329,7 @@ if __name__ == "__main__":
     parser.add_argument("--latents3D", default = 64, type = int)
     parser.add_argument("--latents2D", default = 16, type = int)
     
-    parser.add_argument("--rotate", default=30, type=int)
+    parser.add_argument("--rotate", default=10, type=int)
 
     config = parser.parse_args()
     config = vars(config)
@@ -383,7 +383,7 @@ if __name__ == "__main__":
                                     AlignMeshWithSaxImage(),
                                     RandomScalingBoth(),
                                     Rotate(config['rotate']),
-                                    AugColor(0.2),
+                                    AugColor(0.0),
                                     ToTorchTensors()
                                 ])
         
@@ -402,7 +402,7 @@ if __name__ == "__main__":
                                     RandomScalingBoth(),
                                     Rotate(config['rotate']),
                                     CropSax(),
-                                    AugColor(0.2),
+                                    AugColor(0.0),
                                     ToTorchTensors()
                                 ])
         
@@ -433,7 +433,7 @@ if __name__ == "__main__":
     configs = []
     
     config1 = config.copy()
-    config1['name'] = 'WDS_1_WL_0.01_3D_64_2D_16_KL_1e-4'
+    config1['name'] = 'WDS_1_WL_0.01_3D_64_2D_16_KL_1e-4_no_color'
     config1['latents3D'] = 64
     config1['latents2D'] = 16
     config1['kld_weight'] = 1e-4 
@@ -445,7 +445,7 @@ if __name__ == "__main__":
     configs.append(config1)    
     
     config2 = config.copy()
-    config2['name'] = 'WDS_1_WL_0.01_3D_64_2D_16_KL_1e-5'
+    config2['name'] = 'WDS_1_WL_0.01_3D_64_2D_16_KL_1e-5_no_color'
     config2['latents3D'] = 64
     config2['latents2D'] = 16
     config2['kld_weight'] = 1e-5
@@ -457,7 +457,7 @@ if __name__ == "__main__":
     configs.append(config2)
     
     config3 = config.copy()
-    config3['name'] = 'WDS_1_WL_0.01_3D_64_2D_16_KL_1e-6'
+    config3['name'] = 'WDS_1_WL_0.01_3D_64_2D_16_KL_1e-6_no_color'
     config3['latents3D'] = 64
     config3['latents2D'] = 16
     config3['kld_weight'] = 1e-6
