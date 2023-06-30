@@ -180,6 +180,10 @@ def trainer(train_dataset, val_dataset, models, names, configs, config):
 
         index_a = index_a.to(config['device'])
         index_b = index_b.to(config['device'])
+    else:
+        tets = None
+        index_a = None
+        index_b = None
   
     for epoch in range(1, config['epochs'] + 1):
         for model in models:
