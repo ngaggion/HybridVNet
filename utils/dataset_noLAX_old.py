@@ -52,10 +52,10 @@ class CardiacImageMeshDataset(Dataset):
         SaxImage_array = (SaxImage_array - np.min(SaxImage_array)) / (np.max(SaxImage_array) - np.min(SaxImage_array))
 
         if self.mesh_type == 'Surface':
-            mesh_path = os.path.join("../Backup/Dataset/Meshes/DownsampledMeshes/", subject, time, "fhm.npy")
+            mesh_path = os.path.join("../Backup/Dataset/Meshes/DownsampledMeshes/", str(subject), time, "fhm.npy")
             mesh = np.load(mesh_path)
         elif self.mesh_type == 'Volumetric':
-            mesh_path = os.path.join("../Backup/Dataset/Meshes/VolumetricMeshes/", subject, time, "fhm_vol.npy")
+            mesh_path = os.path.join("../Backup/Dataset/Meshes/VolumetricMeshes/", str(subject), time, "fhm_vol.npy")
             mesh = np.load(mesh_path)
         else:
             raise ValueError("Mesh type not supported")
