@@ -45,7 +45,7 @@ class CardiacImageMeshDataset(Dataset):
         subject = datapoint['subject']
         time = datapoint['time']
         
-        SAX_PATH = os.path.join("../Backup/Dataset/Images/SAX_VTK", str(subject), "image_SAX_%s.vtk" % time[-2:])
+        SAX_PATH = os.path.join("../Backup/Dataset/Images/SAX_VTK", str(subject), "image_SAX_%s.vtk" % time[-3:])
 
         SaxImage = SAXImage(SAX_PATH)
         SaxImage_array = SaxImage.pixel_array
