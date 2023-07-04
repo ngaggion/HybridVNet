@@ -86,7 +86,7 @@ class AlignMeshWithSaxImage(object):
         origin = np.array(sax_image.origin)
         
         # Calculate the pixel size in each dimension
-        pixel_size = np.array(sax_image.spacing + [sax_image.slice_gap])
+        pixel_size = np.array([sax_image.spacing[0], sax_image.spacing[1], sax_image.slice_gap])
 
         # Convert the physical points to voxel indices by subtracting the origin and multiplying with the inverse direction matrix
         voxel_indices = mesh - origin
