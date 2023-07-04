@@ -341,9 +341,7 @@ class RandomScaling(object):
         mesh[:, 0] *= resize_w_factor
         
         sax_array, mesh = pad_or_crop_image_and_mesh(sax_array, mesh, new_sax_h, new_sax_w, SAX_IMAGE_SHAPE)
-        
-        SAX = sample['SAX'].SaxImage
-        
+                
         sample['Sax_Array'] = sax_array
         sample['Mesh'] = mesh
         
@@ -380,8 +378,6 @@ class RandomCrop(object):
         mesh[:, 0] *= resize_w_factor
         
         sax_array, mesh = pad_or_crop_image_and_mesh(sax_array, mesh, new_sax_h, new_sax_w, SAX_IMAGE_SHAPE)
-        
-        SAX = sample['SAX'].SaxImage     
         
         sample['Sax_Array'] = sax_array
         sample['Mesh'] = mesh
