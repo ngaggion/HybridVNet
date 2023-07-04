@@ -19,7 +19,7 @@ from pytorch3d.structures import Meshes
 from torch.optim.lr_scheduler import StepLR
 from torch.utils.tensorboard import SummaryWriter
 from torchvision import transforms
-from utils.dataset_noLAX import (CardiacImageMeshDataset, PadArraysToSquareShape, CropArraysToSquareShape, RandomCrop,
+from utils.dataset_noLAX_old import (CardiacImageMeshDataset, PadArraysToSquareShape, CropArraysToSquareShape, RandomCrop,
                            RandomScaling, Rotate, ToTorchTensors, AugColor, AlignMeshWithSaxImage, CropSax)
                            
 
