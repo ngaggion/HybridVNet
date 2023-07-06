@@ -114,7 +114,7 @@ class AlignMeshWithSaxImage(object):
     """
 
     def __call__(self, sample):
-        sax_image = sample['SAX_VTK']
+        sax_image = sample['SAX']
         mesh = sample['Mesh']
         
         # Get the origin of the image
