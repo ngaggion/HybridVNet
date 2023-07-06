@@ -329,7 +329,7 @@ if __name__ == "__main__":
     parser.add_argument("--latents3D", default = 64, type = int)
     parser.add_argument("--latents2D", default = 16, type = int)
     
-    parser.add_argument("--rotate", default=10, type=int)
+    parser.add_argument("--rotate", default=30, type=int)
 
     config = parser.parse_args()
     config = vars(config)
@@ -383,7 +383,7 @@ if __name__ == "__main__":
                                     AlignMeshWithSaxImage(),
                                     RandomScalingBoth(),
                                     Rotate(config['rotate']),
-                                    AugColor(0.0),
+                                    AugColor(0.3),
                                     ToTorchTensors()
                                 ])
         
@@ -402,7 +402,7 @@ if __name__ == "__main__":
                                     RandomScalingBoth(),
                                     Rotate(config['rotate']),
                                     CropSax(),
-                                    AugColor(0.0),
+                                    AugColor(0.3),
                                     ToTorchTensors()
                                 ])
         
@@ -440,7 +440,7 @@ if __name__ == "__main__":
     config1['w_ds'] = 1
     config1['w_laplacian'] = 0.01
     
-    models.append(HybridGNet3D(config1, D_t, U_t, A_t, skip_connections).float())
+    models.append(HybridGNet3D(config1, D_t, U_t, A_t, None).float())
     names.append(config1['name'])
     configs.append(config1)    
     
@@ -452,7 +452,7 @@ if __name__ == "__main__":
     config2['w_ds'] = 1
     config2['w_laplacian'] = 0.01
     
-    models.append(HybridGNet3D(config2, D_t, U_t, A_t, skip_connections).float())
+    models.append(HybridGNet3D(config2, D_t, U_t, A_t, None).float())
     names.append(config2['name'])
     configs.append(config2)
     
@@ -464,7 +464,7 @@ if __name__ == "__main__":
     config3['w_ds'] = 1
     config3['w_laplacian'] = 0.01
     
-    models.append(HybridGNet3D(config3, D_t, U_t, A_t, skip_connections).float())
+    models.append(HybridGNet3D(config3, D_t, U_t, A_t, None).float())
     names.append(config3['name'])
     configs.append(config3)
     

@@ -430,7 +430,7 @@ if __name__ == "__main__":
     skip_connections = [True] * config['n_skips'] + [False] * (4 - config['n_skips']) if config['do_skip'] else [False] * 4
 
     # Initialize and load model
-    model = HybridGNet3D(config, D_t, U_t, A_t, skip_connections).float()
+    model = HybridGNet3D(config, D_t, U_t, A_t, None).float()
 
     if config['load'] != "":
         model.load_state_dict(torch.load("weights/" + config['load'] + "/final.pt"), strict=False)

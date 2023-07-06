@@ -65,11 +65,8 @@ def go_back(config, image, mesh_v, x0=0, y0=0):
     origin = np.array(image.origin)
     
     # Calculate the pixel size in each dimension
-    pixel_size = np.array(image.spacing)
-
-    # Calculate the direction matrix from the direction cosines
-    direction_matrix = np.array(image.direction).reshape(3, 3)
-
+    pixel_size = np.array([image.spacing[0], image.spacing[1], image.slice_gap])
+        
     outh, outw = config['h'], config['w']
     
     original_h, original_w = image.height, image.width
@@ -86,8 +83,8 @@ def go_back(config, image, mesh_v, x0=0, y0=0):
     mesh_v[:, 1] = (mesh_v[:, 1] * outh + y0) * pixel_size[1]
     mesh_v[:, 2] = (mesh_v[:, 2] * 16 - dz[0]) * pixel_size[2]
 
-    # Convert the voxel indices to physical points by multiplying with the direction matrix and adding the origin
-    mesh = np.dot(mesh_v, direction_matrix.T) + origin
+    # Convert the voxel indices to physical points by  adding the origin
+    mesh = mesh_v + origin
 
     return mesh
 
@@ -140,7 +137,8 @@ def segmentDataset(config, model, test_dataset, meshes_path, model_out_path):
                         
             mesh = go_back(config, vtk, output.squeeze(0).cpu().numpy(), x0, y0)
             
-            gt_path = "../Dataset/Subjects/" + subject.astype('str') + "/mesh/" + time + "/surface.npy"
+            # gt_path = "../Dataset/Subjects/" + subject.astype('str') + "/mesh/" + time + "/surface.npy"
+            gt_path = os.path.join("../Backup/Dataset/Meshes/DownsampledMeshes/", str(subject), time, "fhm.npy")
             
             target = np.load(gt_path)
 
@@ -168,6 +166,11 @@ if __name__ == "__main__":
 
     input = "weights"
     output = "../Predictions"
+    
+    try:
+        os.makedirs(output, exist_ok=True)
+    except:
+        pass
 
     models = load_folder(input)
 

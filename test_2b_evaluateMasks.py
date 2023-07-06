@@ -9,7 +9,7 @@ import numpy as np
 from functools import partial
 from multiprocessing import Pool
 
-def eval(model_path, faces, subs):
+def eval(model_path):
     print("Evaluating model", model_path.split("/")[-1])
     
     dataframe = pd.DataFrame(columns=["ID",  
@@ -27,7 +27,7 @@ def eval(model_path, faces, subs):
             mask_path = os.path.join(time, "mask.nii.gz")
             mask_seg = sitk.GetArrayFromImage(sitk.ReadImage(mask_path))
             
-            gt_path = os.path.join("../Dataset/Subjects", subject.split('/')[-1], "mesh", time.split('/')[-1], "lv_rv_mask.nii.gz")
+            gt_path = os.path.join("../Dataset/Masks", subject.split('/')[-1], time.split('/')[-1], "mask.nii.gz")
             gt = sitk.GetArrayFromImage(sitk.ReadImage(gt_path))
             
             dice_myo = dc(gt == 250, mask_seg == 250)
@@ -42,6 +42,8 @@ def eval(model_path, faces, subs):
             hausdorff_rv_Endo = HD(gt == 100, mask_seg == 100)
             assd_value_rv_Endo = MCD(gt == 100, mask_seg == 100)
             
+            print(dice_myo, dice_Endo, dice_rv_Endo)
+            
             dataframe.loc[i] = [subject.split('/')[-1], 
                 dice_myo, hausdorff_myo, assd_value_myo, 
                 dice_Endo, hausdorff_Endo, assd_value_Endo, 
@@ -54,13 +56,10 @@ def eval(model_path, faces, subs):
 
     return
 
-def evaluate_model(models_path):
-    faces = np.load("../Dataset/SurfaceFiles/faces_fhm_numpy.npy")
-    subs = np.loadtxt("../Dataset/SurfaceFiles/subparts_fhm.txt", dtype=str)
-    
+def evaluate_model(models_path):    
     models = load_folder(models_path)
     
-    func = partial(eval, faces=faces, subs=subs)
+    func = partial(eval)
     with Pool(8) as p:
         p.map(func, models)
         

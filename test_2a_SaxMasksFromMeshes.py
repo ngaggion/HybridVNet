@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 from trimesh import Trimesh
 import SimpleITK as sitk
-from utils.SaxImage import SAXImage
+from utils.SaxImage_VTK import SAXImage
 
 VOXEL_SIZE = 1.0
 
@@ -43,7 +43,6 @@ def extract_subpart(points, faces, ids, subpartID):
     
     return points, triangles
 
-
 def get_grid(label, faces, subs):
     full_mesh = get_tmesh(label.copy(), faces, ["RV", "LV", "MVP", "AVP", "TVP", "PVP"], subs)
 
@@ -59,7 +58,6 @@ def get_grid(label, faces, subs):
     grilla = assign_voxels(grilla, lv_myo, 250, full_mesh)
 
     return full_mesh, grilla
-
 
 def assign_voxels(grid, mesh, value, full):
         """
@@ -82,11 +80,9 @@ def assign_voxels(grid, mesh, value, full):
 
         return grid
 
-
 def get_tmesh(v, f, subpartID, subpart_ids):
     v, f = extract_subpart(v.copy(), f, subpartID, subpart_ids)
     return Trimesh(vertices=v, faces=f).voxelized(VOXEL_SIZE).fill()
-
 
 def get_mask_values(fhm, grilla, pos, outbound=0):
     # get valid indices
@@ -115,8 +111,8 @@ def get_mask_image(mesh, faces, subs, sax):
     mask_img = np.zeros((sax.height, sax.width, sax.num_slices), dtype=np.uint8)
 
     # get slice index for z direction
-    slice_idx = [sax.slice_gap * idx + sax.origin[2] for idx in range(sax.num_slices)]
-    
+    slice_idx = sax.slice_gap * range(sax.num_slices) + sax.origin[2]
+
     # create image grid
     xr = np.arange(0, mask_img.shape[1], dtype=float) * sax.spacing[0] + sax.origin[0]
     yr = np.arange(0, mask_img.shape[0], dtype=float) * sax.spacing[1] + sax.origin[1]
@@ -154,6 +150,7 @@ def process_subject(subject, out_path, faces, subs, evaluate, overwrite):
         time_id = time.split("/")[-1]
         
         image_path = "../Dataset/Subjects/" + subject_id + "/image/" + time_id + '/SAX'
+        image_path = os.path.join("../Backup/Dataset/Images/SAX_VTK", str(subject_id), "image_SAX_%s.vtk" % time_id[-3:])
         
         print(image_path)
         
@@ -161,11 +158,6 @@ def process_subject(subject, out_path, faces, subs, evaluate, overwrite):
         
         mesh = np.load(os.path.join(time, "mesh.npy"))
         
-        origin = np.array(image.origin)
-        direction_matrix = np.array(image.direction).reshape(3, 3)
-        inverse_direction_matrix = np.linalg.inv(direction_matrix)
-        mesh = np.dot((mesh - origin), inverse_direction_matrix.T) + origin
-
         mask_seg = get_mask_image(mesh, faces, subs, image).transpose(2,0,1)
         
         save_folder = os.path.join(out_path, subject_id, time_id)
@@ -195,13 +187,7 @@ if __name__ == "__main__":
             continue
         
         print("Segmenting model", model_path.split("/")[-1])
-        
-        if evaluate:
-            dataframe = pd.DataFrame(columns=["ID",  
-                                "LV Myo - DC", "LV Myo - HD", "LV Myo - MCD",
-                                "LV Endo - DC", "LV Endo - HD", "LV Endo - MCD",
-                                "RV Endo - DC", "RV Endo - HD", "RV Endo - MCD"])
-    
+            
         i = 0
                 
         out_path = os.path.join(model_path, "Masks")

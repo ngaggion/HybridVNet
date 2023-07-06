@@ -1,4 +1,5 @@
 from .SaxImage import SAXImage
+from .SaxImage_VTK import SAXImage as SAXImage2
 from .LaxImage import LAXImage
 import SimpleITK as sitk
 import os
@@ -52,9 +53,10 @@ class CardiacImageMeshDataset(Dataset):
         LAX_2CH_PATH = os.path.join(LAX_PATH, "2CH", '0001')
         LAX_3CH_PATH = os.path.join(LAX_PATH, "3CH", '0001')
         LAX_4CH_PATH = os.path.join(LAX_PATH, "4CH", '0001')
-
-        SaxImage = SAXImage(SAX_PATH)
-        SaxImage_array = SaxImage.pixel_array()
+        
+        VTK_SAX_PATH = os.path.join("../Backup/Dataset/Images/SAX_VTK", str(subject), "image_SAX_%s.vtk" % time[-3:])
+        SaxImage = SAXImage2(VTK_SAX_PATH)
+        SaxImage_array = SaxImage.pixel_array
         SaxImage_array = (SaxImage_array - np.min(SaxImage_array)) / (np.max(SaxImage_array) - np.min(SaxImage_array))
 
         try:
@@ -82,9 +84,11 @@ class CardiacImageMeshDataset(Dataset):
             Lax4CH_array = np.zeros((224, 224, 1))
 
         if self.mesh_type == 'Surface':
-            mesh = np.load(os.path.join(path.replace("image", "mesh"), "surface.npy"))
+            mesh_path = os.path.join("../Backup/Dataset/Meshes/DownsampledMeshes/", str(subject), time, "fhm.npy")
+            mesh = np.load(mesh_path)
         elif self.mesh_type == 'Volumetric':
-            mesh = np.load(os.path.join(path.replace("image", "mesh"), "volumetric.npy"))
+            mesh_path = os.path.join("../Backup/Dataset/Meshes/VolumetricMeshes/", str(subject), time, "fhm_vol.npy")
+            mesh = np.load(mesh_path)
         else:
             raise ValueError("Mesh type not supported")
 
@@ -115,16 +119,10 @@ class AlignMeshWithSaxImage(object):
         origin = np.array(sax_image.origin)
         
         # Calculate the pixel size in each dimension
-        pixel_size = np.array(sax_image.spacing)
-
-        # Calculate the direction matrix from the direction cosines
-        direction_matrix = np.array(sax_image.direction).reshape(3, 3)
-
-        # Calculate the inverse of the direction matrix
-        inverse_direction_matrix = np.linalg.inv(direction_matrix)
+        pixel_size = np.array([sax_image.spacing[0], sax_image.spacing[1], sax_image.slice_gap])
 
         # Convert the physical points to voxel indices by subtracting the origin and multiplying with the inverse direction matrix
-        voxel_indices = np.dot((mesh - origin), inverse_direction_matrix.T)
+        voxel_indices = mesh - origin
 
         # Convert the voxel indices to image space by dividing by the pixel size
         image_space_points = voxel_indices / pixel_size
@@ -430,8 +428,8 @@ class RandomScalingBoth(object):
         sax_array = sample['Sax_Array']
         mesh = sample['Mesh']
               
-        resize_h_factor = np.random.uniform(0.90, 1.20)
-        resize_w_factor = np.random.uniform(0.90, 1.20)
+        resize_h_factor = np.random.uniform(0.70, 1.30)
+        resize_w_factor = np.random.uniform(0.70, 1.30)
                 
         sax_h, sax_w, sax_z = sax_array.shape
         new_sax_h = int(round(sax_h * resize_h_factor, 0))
@@ -493,8 +491,8 @@ class RandomCropBoth(object):
         sax_array = sample['Sax_Array']
         mesh = sample['Mesh']
               
-        resize_h_factor = np.random.uniform(0.90, 1.20)
-        resize_w_factor = np.random.uniform(0.90, 1.20)
+        resize_h_factor = np.random.uniform(0.70, 1.30)
+        resize_w_factor = np.random.uniform(0.70, 1.30)
                 
         sax_h, sax_w, sax_z = sax_array.shape
         new_sax_h = int(round(sax_h * resize_h_factor, 0))
