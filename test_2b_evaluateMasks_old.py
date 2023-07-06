@@ -66,5 +66,5 @@ def evaluate_model(models_path):
         
 
 if __name__ == "__main__":
-    models_path = "../Predictions/Surface/"
+    models_path = "../Predictions_Old/Surface/"
     evaluate_model(models_path)
