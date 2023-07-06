@@ -182,7 +182,7 @@ def trainer(train_dataset, val_dataset, models, names, configs, config):
                 # one step of the optmizer (using the gradients from backpropagation)
                 optimizers[j].step()
             
-                train_kld_loss_avg[j] += models[j].kld_weight * kld_loss.item()
+                train_kld_loss_avg[j] += kld_loss.item()
                 train_rec_loss_avg[j] += outloss.item()
                 train_loss_avg[j] += loss.item()
                 
@@ -383,7 +383,7 @@ if __name__ == "__main__":
                                     AlignMeshWithSaxImage(),
                                     RandomScalingBoth(),
                                     Rotate(config['rotate']),
-                                    AugColor(0.3),
+                                    AugColor(0.5),
                                     ToTorchTensors()
                                 ])
         
@@ -402,7 +402,7 @@ if __name__ == "__main__":
                                     RandomScalingBoth(),
                                     Rotate(config['rotate']),
                                     CropSax(),
-                                    AugColor(0.3),
+                                    AugColor(0.5),
                                     ToTorchTensors()
                                 ])
         
@@ -433,10 +433,10 @@ if __name__ == "__main__":
     configs = []
     
     config1 = config.copy()
-    config1['name'] = 'WDS_1_WL_0.01_3D_64_2D_16_KL_1e-3_no_color'
-    config1['latents3D'] = 64
-    config1['latents2D'] = 16
-    config1['kld_weight'] = 1e-3
+    config1['name'] = 'WDS_1_WL_0.01_3D_32_2D_8_KL_1e-4'
+    config1['latents3D'] = 32
+    config1['latents2D'] = 8
+    config1['kld_weight'] = 1e-4
     config1['w_ds'] = 1
     config1['w_laplacian'] = 0.01
     
@@ -445,28 +445,16 @@ if __name__ == "__main__":
     configs.append(config1)    
     
     config2 = config.copy()
-    config2['name'] = 'WDS_1_WL_0.01_3D_64_2D_16_KL_1e-4_no_color'
-    config2['latents3D'] = 64
-    config2['latents2D'] = 16
-    config2['kld_weight'] = 1e-4
+    config2['name'] = 'WDS_1_WL_0.01_3D_32_2D_8_KL_1e-5'
+    config2['latents3D'] = 32
+    config2['latents2D'] = 8
+    config2['kld_weight'] = 1e-5
     config2['w_ds'] = 1
     config2['w_laplacian'] = 0.01
     
     models.append(HybridGNet3D(config2, D_t, U_t, A_t, None).float())
     names.append(config2['name'])
     configs.append(config2)
-    
-    config3 = config.copy()
-    config3['name'] = 'WDS_1_WL_0.01_3D_64_2D_16_KL_1e-5_no_color'
-    config3['latents3D'] = 64
-    config3['latents2D'] = 16
-    config3['kld_weight'] = 1e-5
-    config3['w_ds'] = 1
-    config3['w_laplacian'] = 0.01
-    
-    models.append(HybridGNet3D(config3, D_t, U_t, A_t, None).float())
-    names.append(config3['name'])
-    configs.append(config3)
-    
+        
     # Train the model
     trainer(train_dataset, val_dataset, models, names, configs, config)

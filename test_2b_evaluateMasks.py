@@ -41,15 +41,13 @@ def eval(model_path):
             dice_rv_Endo = dc(gt == 100, mask_seg == 100)
             hausdorff_rv_Endo = HD(gt == 100, mask_seg == 100)
             assd_value_rv_Endo = MCD(gt == 100, mask_seg == 100)
-            
-            print(dice_myo, dice_Endo, dice_rv_Endo)
-            
+                        
             dataframe.loc[i] = [subject.split('/')[-1], 
                 dice_myo, hausdorff_myo, assd_value_myo, 
                 dice_Endo, hausdorff_Endo, assd_value_Endo, 
                 dice_rv_Endo, hausdorff_rv_Endo, assd_value_rv_Endo]
             
-        i += 1
+            i += 1
     
     print("Saving metrics", model_path.split("/")[-1])
     dataframe.to_csv(os.path.join(model_path, "metrics.csv"), index=False)
