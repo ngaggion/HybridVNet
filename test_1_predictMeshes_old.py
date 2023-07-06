@@ -65,11 +65,8 @@ def go_back(config, image, mesh_v, x0=0, y0=0):
     origin = np.array(image.origin)
     
     # Calculate the pixel size in each dimension
-    pixel_size = np.array([simage.spacing[0], image.spacing[1], image.slice_gap])
+    pixel_size = np.array([image.spacing[0], image.spacing[1], image.slice_gap])
         
-    # Calculate the direction matrix from the direction cosines
-    direction_matrix = np.array(image.direction).reshape(3, 3)
-
     outh, outw = config['h'], config['w']
     
     original_h, original_w = image.height, image.width

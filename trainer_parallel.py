@@ -433,10 +433,10 @@ if __name__ == "__main__":
     configs = []
     
     config1 = config.copy()
-    config1['name'] = 'WDS_1_WL_0.01_3D_64_2D_16_KL_1e-4_no_color'
+    config1['name'] = 'WDS_1_WL_0.01_3D_64_2D_16_KL_1e-3_no_color'
     config1['latents3D'] = 64
     config1['latents2D'] = 16
-    config1['kld_weight'] = 1e-4 
+    config1['kld_weight'] = 1e-3
     config1['w_ds'] = 1
     config1['w_laplacian'] = 0.01
     
@@ -445,10 +445,10 @@ if __name__ == "__main__":
     configs.append(config1)    
     
     config2 = config.copy()
-    config2['name'] = 'WDS_1_WL_0.01_3D_64_2D_16_KL_1e-5_no_color'
+    config2['name'] = 'WDS_1_WL_0.01_3D_64_2D_16_KL_1e-4_no_color'
     config2['latents3D'] = 64
     config2['latents2D'] = 16
-    config2['kld_weight'] = 1e-5
+    config2['kld_weight'] = 1e-4
     config2['w_ds'] = 1
     config2['w_laplacian'] = 0.01
     
@@ -457,10 +457,10 @@ if __name__ == "__main__":
     configs.append(config2)
     
     config3 = config.copy()
-    config3['name'] = 'WDS_1_WL_0.01_3D_64_2D_16_KL_1e-6_no_color'
+    config3['name'] = 'WDS_1_WL_0.01_3D_64_2D_16_KL_1e-5_no_color'
     config3['latents3D'] = 64
     config3['latents2D'] = 16
-    config3['kld_weight'] = 1e-6
+    config3['kld_weight'] = 1e-5
     config3['w_ds'] = 1
     config3['w_laplacian'] = 0.01
     

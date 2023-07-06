@@ -175,7 +175,7 @@ def process_subject(subject, out_path, faces, subs, evaluate, overwrite):
         
 
 if __name__ == "__main__":
-    input = "../Predictions/Surface/"
+    input = "../Predictions_Old/Surface/"
     overwrite = True
     evaluate = True
     
@@ -187,7 +187,7 @@ if __name__ == "__main__":
     for model_path in models:
         config = json.load(open(os.path.join(model_path.replace('Predictions_Old/Surface', 'Code/weights'), "config.json")))
         
-        if config['finished'] and os.path.isfile(os.path.join(model_path.replace('Predictions/Surface_Old', 'Code/weights'), "segmented_mask_old.txt")):
+        if config['finished'] and os.path.isfile(os.path.join(model_path.replace('Predictions_Old/Surface_Old', 'Code/weights'), "segmented_mask_old.txt")):
             continue
         
         print("Segmenting model", model_path.split("/")[-1])

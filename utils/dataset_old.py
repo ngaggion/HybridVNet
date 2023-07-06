@@ -1,5 +1,5 @@
 from .SaxImage import SAXImage
-from utils.SaxImage_OLD import SAXImage2
+from .SaxImage_OLD import SAXImage as SAXImage2
 from .LaxImage import LAXImage
 import SimpleITK as sitk
 import os
@@ -48,13 +48,14 @@ class CardiacImageMeshDataset(Dataset):
         
         path = os.path.join(self.dataset_path, str(subject), "image", time)
 
+        SAX_PATH = os.path.join(path, "SAX")
         LAX_PATH = os.path.join(path, "LAX")
         LAX_2CH_PATH = os.path.join(LAX_PATH, "2CH", '0001')
         LAX_3CH_PATH = os.path.join(LAX_PATH, "3CH", '0001')
         LAX_4CH_PATH = os.path.join(LAX_PATH, "4CH", '0001')
         
         VTK_SAX_PATH = os.path.join("../Backup/Dataset/Images/SAX_VTK", str(subject), "image_SAX_%s.vtk" % time[-3:])
-        SaxImage2 = SAXImage(VTK_SAX_PATH)
+        SaxImage = SAXImage2(VTK_SAX_PATH)
         SaxImage_array = SaxImage.pixel_array
         SaxImage_array = (SaxImage_array - np.min(SaxImage_array)) / (np.max(SaxImage_array) - np.min(SaxImage_array))
 
