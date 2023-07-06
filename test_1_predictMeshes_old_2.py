@@ -3,8 +3,7 @@ import os
 import pickle as pkl
 import numpy as np
 import torch
-from models.hybridGNet_3D import HybridGNet3D
-from models.hybridGNet_3D_noLAX import HybridGNet3D as HybridGNet3D_noLAX
+from models.hybridGNet_2LAX import HybridGNet3D
 
 from models.utils import scipy_to_torch_sparse
 from torchvision import transforms
@@ -17,13 +16,13 @@ from utils.file_utils import load_folder
 import pandas as pd
 
 def configure_model(config):
-    matrix_path = config['matrix_path']
+    matrix_path = "../Dataset/SurfaceFiles/Matrices_fhm.pkl"
  
     # Load mesh matrices and set up device
     with open(matrix_path, "rb") as f:
         dic = pkl.load(f)
 
-    gpu = "cuda:" + str(config["cuda_device"])
+    gpu = "cuda:0"
     device = torch.device(gpu if torch.cuda.is_available() else "cpu")
     config['device'] = device
 
@@ -37,17 +36,21 @@ def configure_model(config):
     A_t = [scipy_to_torch_sparse(a).to(device).float() for a in A]
     num_nodes = [len(M[i].v) for i in range(len(M))]
     
+    config['latents'] = 64
+    config['kld_weight'] = 1e-5
     config['n_nodes'] = num_nodes
+    config['h'] = 100
+    config['w'] = 100
+    config['slices'] = 16
+    config['K'] = 6
+    config['filters'] = [3, 16, 32, 32, 64, 64]
+    config['grad_prob'] = 0.0
 
-    # Set up skip connections
-    skip_connections = [True] * config['n_skips'] + [False] * (4 - config['n_skips']) if config['do_skip'] else [False] * 4
-    
+    skips = [False, False, False, False]
+
     # Initialize and load model
     
-    if "no_lax" in config['name']:
-        model = HybridGNet3D_noLAX(config, D_t, U_t, A_t, skip_connections).float().to(device)
-    else:    
-        model = HybridGNet3D(config, D_t, U_t, A_t, skip_connections).float().to(device)
+    model = HybridGNet3D(config, D_t, U_t, A_t, skips).float().to(device)
 
     return model
 
@@ -67,14 +70,9 @@ def go_back(config, image, mesh_v, x0=0, y0=0):
     # Calculate the pixel size in each dimension
     pixel_size = np.array([image.spacing[0], image.spacing[1], image.slice_gap])
         
-    outh, outw = config['h'], config['w']
+    outh, outw = 100, 100
     
     original_h, original_w = image.height, image.width
-    
-    if config['full']:
-        # We have to remove the padding
-        x0 = - get_both_paddings(210, original_w)[0]
-        y0 = - get_both_paddings(210, original_h)[0]
            
     z = image.num_slices
     dz = get_both_paddings(16, z)
@@ -104,7 +102,9 @@ def extract(id, subpartID):
  
 def segmentDataset(config, model, test_dataset, meshes_path, model_out_path):
     model.eval()
-    device = config['device']
+    
+    config = {}
+    device = "cuda:0"
     
     evalDF = pd.DataFrame(columns=['Subject','Time', 'Subpart', 'MSE', 'MAE', 'RMSE'])
 
@@ -123,17 +123,19 @@ def segmentDataset(config, model, test_dataset, meshes_path, model_out_path):
             image, target, lax2ch, lax3ch, lax4ch = sample['Sax_Array'].to(device), sample['Mesh'].to(device), sample['Lax2CH_Array'].to(device), sample['Lax3CH_Array'].to(device), sample['Lax4CH_Array'].to(device)
             vtk = sample['SAX']
             
-            x0, y0 = (sample[k] for k in ['x0', 'y0']) if not config['full'] else (0, 0)
+            x0, y0 = (sample[k] for k in ['x0', 'y0'])
 
             subject, time = test_dataset.dataframe.iloc[t][['subject', 'time']]
             
             subj_time_path = os.path.join(meshes_path, subject.astype('str'), time)
             os.makedirs(subj_time_path, exist_ok=True)
 
-            if "no_lax" in config['name']:
-                output, _ = model(image.unsqueeze(0))
-            else:
-                output, _ = model(image.unsqueeze(0), lax2ch.unsqueeze(0), lax3ch.unsqueeze(0), lax4ch.unsqueeze(0))
+            image = (image - torch.min(image)) / (torch.max(image) - torch.min(image))
+            lax2ch = (lax2ch - torch.min(lax2ch)) / (torch.max(lax2ch) - torch.min(lax2ch))
+            lax4ch = (lax4ch - torch.min(lax4ch)) / (torch.max(lax4ch) - torch.min(lax4ch))
+            
+            model.eval()
+            output, _ = model(image.unsqueeze(0), lax4ch.unsqueeze(0), lax2ch.unsqueeze(0))
                         
             mesh = go_back(config, vtk, output.squeeze(0).cpu().numpy(), x0, y0)
             
@@ -147,6 +149,8 @@ def segmentDataset(config, model, test_dataset, meshes_path, model_out_path):
             MSE, MAE, RMSE = evaluate(target, mesh)
             evalDF.loc[j] = [subject, time, 'Full', MSE, MAE, RMSE]
 
+            print("Full:", MSE, MAE, RMSE)
+            
             j+=1
             
             for i in range(0, len(subparts)):
@@ -164,8 +168,8 @@ if __name__ == "__main__":
             self.v = v
             self.f = f
 
-    input = "weights"
-    output = "../Predictions_Old"
+    input = "../OldWeight"
+    output = "../Predictions_2"
     
     try:
         os.makedirs(output, exist_ok=True)
@@ -174,49 +178,36 @@ if __name__ == "__main__":
 
     models = load_folder(input)
 
-    for model_path in models:
-        config = json.load(open(os.path.join(model_path, "config.json")))
-        if config['finished'] and os.path.isfile(os.path.join(model_path, "segmented_old.txt")):
-            continue
-        
-        out_path = os.path.join(output, "Surface" if config['surface'] else "Volumetric")
+    for model_path in models:        
+        out_path = os.path.join(output, "Surface")
             
         if not os.path.exists(out_path):
             os.makedirs(out_path, exist_ok=True)
                 
-        model_out_path = os.path.join(out_path, config['name'])
+        model_out_path = os.path.join(out_path, os.path.basename(model_path))
         os.makedirs(model_out_path, exist_ok=True)
 
         meshes_path = os.path.join(model_out_path, "Meshes")
         os.makedirs(meshes_path, exist_ok=True)
 
+        config = {}    
         model = configure_model(config)
-        model.load_state_dict(torch.load(os.path.join(model_path, "bestMSE.pt"), map_location=config['device']))
-        faces = np.load(config['faces_path']).astype(np.int32)
+        model.load_state_dict(torch.load(os.path.join(model_path, "bestMSE.pt"), map_location="cuda:0"))
 
         part_file = "../Dataset/test_split.csv"
 
         transform = transforms.Compose([
             AlignMeshWithSaxImage(),
-            (PadArraysToSquareShape() if config['full'] else CropArraysToSquareShape()),
+            CropArraysToSquareShape(),
             ToTorchTensorsTest()
         ])
         
-        print("Segmenting model", config['name'])
+        print("Segmenting model", os.path.basename(model_path))
 
-        if config['surface']:
-            mesh_type = "Surface"
-        else:
-            mesh_type = "Volumetric"
-        
+        mesh_type = "Surface"
         test_dataset = CardiacImageMeshDataset(part_file, "../Dataset/Subjects", mesh_type = mesh_type,
                                                transform = transform)
-            
+        
         segmentDataset(config, model, test_dataset, meshes_path, model_out_path)
         print("")
-            
-        if config['finished']:
-            # create a segmented.txt file to indicate that the model has been segmented
-            with open(os.path.join(model_path, "segmented_old.txt"), "w") as f:
-                f.write("True")
-    
+        

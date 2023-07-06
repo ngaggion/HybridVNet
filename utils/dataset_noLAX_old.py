@@ -187,85 +187,61 @@ class CropArraysToSquareShape(object):
     
 def pad_or_crop_image_and_mesh(sax_array, mesh, new_sax_h, new_sax_w, SAX_IMAGE_SHAPE):
     # Estimates new mesh limits
-    min_h = np.min(mesh[:, 1])
-    max_h = np.max(mesh[:, 1])
+    min_h = np.round(np.min(mesh[:, 1])).astype(int)
+    max_h = np.round(np.max(mesh[:, 1])).astype(int)
     mesh_height = max_h - min_h
 
-    min_w = np.min(mesh[:, 0])
-    max_w = np.max(mesh[:, 0])
+    min_w = np.round(np.min(mesh[:, 0])).astype(int)
+    max_w = np.round(np.max(mesh[:, 0])).astype(int)
     mesh_width = max_w - min_w  
     
-    if mesh_height > SAX_IMAGE_SHAPE[0]:
-        print("Height bigger than ROI")
-    elif mesh_width > SAX_IMAGE_SHAPE[1]:
-        print("Width bigger than ROI")
-
     # Adjust height
     if new_sax_h < SAX_IMAGE_SHAPE[0]:
-        padding = _get_both_paddings(SAX_IMAGE_SHAPE[0], new_sax_h)
-        pad_h_1 = np.random.randint(0, padding[0] + padding[1])
-        pad_h_2 = padding[0] + padding[1] - pad_h_1
+        pad = SAX_IMAGE_SHAPE[0] - new_sax_h
+        pad_h_1 = np.random.randint(np.floor(pad/4), np.ceil(3*pad/4))
+        pad_h_2 = pad - pad_h_1
         mesh[:, 1] += pad_h_1
         sax_array = np.pad(sax_array, ((pad_h_1, pad_h_2), (0, 0), (0, 0)), 'constant', constant_values=0)
         
     elif new_sax_h > SAX_IMAGE_SHAPE[0]:        
-        crop_amount = new_sax_h - SAX_IMAGE_SHAPE[0]
+        # Crop range
+        crop_range = SAX_IMAGE_SHAPE[0] - mesh_height
+        max_left_limit = new_sax_h - SAX_IMAGE_SHAPE[0] + 1
         
-        # Ensure we don't crop the mesh from the left
-        crop_left_limit = min(crop_amount, int(min_h))
-        
-        # Ensure we don't crop the mesh from the right
-        mesh_limit = max_h - SAX_IMAGE_SHAPE[0]
-        mesh_limit = int(round(max(mesh_limit, 0)))
-
-        try:
-            random_crop_left = np.random.randint(mesh_limit, crop_left_limit)
-        except:
-            if mesh_limit == crop_left_limit:
-                random_crop_left = mesh_limit
-            elif mesh_limit > crop_left_limit:
-                random_crop_left = crop_left_limit
-                
-        right_limit = random_crop_left + SAX_IMAGE_SHAPE[0]
-        
-        if right_limit >= new_sax_h:
-            right_limit = new_sax_h
-            random_crop_left = new_sax_h - SAX_IMAGE_SHAPE[0]
+        if crop_range > 0 and min_h > 0:
+            left_limit = np.random.randint(0, min(crop_range, min_h))
+            left_limit = min(left_limit, max_left_limit)
+        else:
+            left_limit = min_h
             
-        sax_array = sax_array[random_crop_left:right_limit, :, :]
-        mesh[:, 1] -= random_crop_left 
+        right_limit = left_limit + SAX_IMAGE_SHAPE[0]
+            
+        sax_array = sax_array[left_limit:right_limit, :, :]
+        mesh[:, 1] -= left_limit
 
     # Adjust width
     if new_sax_w < SAX_IMAGE_SHAPE[1]:
-        padding = _get_both_paddings(SAX_IMAGE_SHAPE[1], new_sax_w)
-        pad_w_1 = np.random.randint(0, padding[0] + padding[1])
-        pad_w_2 = padding[0] + padding[1] - pad_w_1
+        pad = SAX_IMAGE_SHAPE[1] - new_sax_w
+        pad_w_1 = np.random.randint(np.floor(pad/4), np.ceil(3*pad/4))
+        pad_w_2 = pad - pad_w_1
         mesh[:, 0] += pad_w_1
         sax_array = np.pad(sax_array, ((0, 0), (pad_w_1, pad_w_2), (0, 0)), 'constant', constant_values=0)
         
     elif new_sax_w > SAX_IMAGE_SHAPE[1]:
-        crop_amount = new_sax_w - SAX_IMAGE_SHAPE[1]
-        crop_left_limit = min(crop_amount, int(min_w))
-        # Ensure we don't crop the mesh from the right
-        mesh_limit = max_w - SAX_IMAGE_SHAPE[1]
-        mesh_limit = int(round(max(mesh_limit, 0)))
-
-        try:
-            random_crop_left = np.random.randint(mesh_limit, crop_left_limit)
-        except:
-            if mesh_limit == crop_left_limit:
-                random_crop_left = mesh_limit
-            elif mesh_limit > crop_left_limit:
-                random_crop_left = crop_left_limit
+        # Crop range
+        crop_range = SAX_IMAGE_SHAPE[1] - mesh_width
+        max_left_limit = new_sax_w - SAX_IMAGE_SHAPE[1] + 1
         
-        right_limit = random_crop_left + SAX_IMAGE_SHAPE[1]
-        
-        if right_limit >= new_sax_w:
-            right_limit = new_sax_w
-            random_crop_left = new_sax_w - SAX_IMAGE_SHAPE[1]
+        if crop_range > 0 and min_w > 0:
+            left_limit = np.random.randint(0, min(crop_range, min_w))
+            left_limit = min(left_limit, max_left_limit)
+        else:
+            left_limit = min_w
             
-        sax_array = sax_array[:, random_crop_left:right_limit, :]
-        mesh[:, 0] -= random_crop_left
+        right_limit = left_limit + SAX_IMAGE_SHAPE[1]
+            
+        sax_array = sax_array[:, left_limit:right_limit, :]
+        mesh[:, 0] -= left_limit
         
     # Always pad the z axis to the desired shape
     padding = _get_both_paddings(SAX_IMAGE_SHAPE[2], sax_array.shape[2])
@@ -273,42 +249,6 @@ def pad_or_crop_image_and_mesh(sax_array, mesh, new_sax_h, new_sax_w, SAX_IMAGE_
     mesh[:, 2] += padding[0]
         
     return sax_array, mesh
-
-
-def pad_or_crop_image(image, output_shape):
-    input_shape = image.shape[:2]
-    target_height, target_width = output_shape
-
-    if input_shape == output_shape:
-        return image
-
-    # First it padds the image to the desired shape
-    
-    pad_height = max(target_height - input_shape[0], 0)
-    pad_width = max(target_width - input_shape[1], 0)
-
-    pad_top = pad_height // 2
-    pad_bottom = pad_height - pad_top
-    pad_left = pad_width // 2
-    pad_right = pad_width - pad_left
-
-    padded_image = np.pad(image, ((pad_top, pad_bottom), (pad_left, pad_right)), mode='constant')
-    
-    # Then croppes the image to the desired shape if needed
-    
-    input_shape = padded_image.shape[:2]
-    crop_height = max(input_shape[0] - target_height, 0)
-    crop_width = max(input_shape[1] - target_width, 0)
-
-    crop_top = crop_height // 2
-    crop_bottom = crop_height - crop_top
-    crop_left = crop_width // 2
-    crop_right = crop_width - crop_left
-    
-    cropped_image = padded_image[crop_top:input_shape[0] + pad_top - crop_bottom, crop_left:input_shape[1] + pad_left - crop_right]
-
-    return cropped_image
-
 
 class RandomScaling(object):
     """
@@ -323,62 +263,20 @@ class RandomScaling(object):
         sax_array = sample['Sax_Array']
         mesh = sample['Mesh']
               
-        resize_h_factor = np.random.uniform(0.70, 1.30)
-        resize_w_factor = np.random.uniform(0.70, 1.30)
-                
-        sax_h, sax_w, sax_z = sax_array.shape
-        new_sax_h = int(round(sax_h * resize_h_factor, 0))
-        new_sax_w = int(round(sax_w * resize_w_factor, 0))
-        
-        # The sax_array is resized to the new shape
-        sax_array = cv2.resize(sax_array, (new_sax_w, new_sax_h))
-        
-        # The real scaling factor is calculated due to the rounding of the new shape
-        resize_h_factor = new_sax_h / sax_h
-        resize_w_factor = new_sax_w / sax_w
-        
+        resize_h_factor = np.random.uniform(0.90, 1.20)
+        resize_w_factor = np.random.uniform(0.90, 1.20)
+
         mesh[:, 1] *= resize_h_factor
         mesh[:, 0] *= resize_w_factor
-        
-        sax_array, mesh = pad_or_crop_image_and_mesh(sax_array, mesh, new_sax_h, new_sax_w, SAX_IMAGE_SHAPE)
-                
-        sample['Sax_Array'] = sax_array
-        sample['Mesh'] = mesh
-        
-        return sample
-
-class RandomCrop(object):
-    """
-    Scales the Short-axis and long-axis images accordingly to physical space. 
-    Then crops or pads the images to the out shapes:
-    SAX_IMAGE_SHAPE = (100, 100, 16)
-    """
-
-    def __call__(self, sample):
-        SAX_IMAGE_SHAPE = (100, 100, 16)
-        
-        sax_array = sample['Sax_Array']
-        mesh = sample['Mesh']
-              
-        resize_h_factor = np.random.uniform(0.70, 1.30)
-        resize_w_factor = np.random.uniform(0.70, 1.30)
-                
+                        
         sax_h, sax_w, sax_z = sax_array.shape
-        new_sax_h = int(round(sax_h * resize_h_factor, 0))
-        new_sax_w = int(round(sax_w * resize_w_factor, 0))
+        new_sax_h = np.round(sax_h * resize_h_factor).astype(int)
+        new_sax_w = np.round(sax_w * resize_w_factor).astype(int)
         
-        # The sax_array is resized to the new shape
-        sax_array = cv2.resize(sax_array, (new_sax_w, new_sax_h))
-        
-        # The real scaling factor is calculated due to the rounding of the new shape
-        resize_h_factor = new_sax_h / sax_h
-        resize_w_factor = new_sax_w / sax_w
-        
-        mesh[:, 1] *= resize_h_factor
-        mesh[:, 0] *= resize_w_factor
-        
+        sax_array = transform.resize(sax_array, (new_sax_w, new_sax_h))
+               
         sax_array, mesh = pad_or_crop_image_and_mesh(sax_array, mesh, new_sax_h, new_sax_w, SAX_IMAGE_SHAPE)
-        
+                
         sample['Sax_Array'] = sax_array
         sample['Mesh'] = mesh
         
@@ -449,7 +347,6 @@ class Rotate(object):
         c, s = np.cos(theta), np.sin(theta)
         R = np.array(((c, -s), (s, c)))
         
-        # columns x and y are inverted
         mesh[:, :2] = np.dot(mesh[:, :2], R)        
         mesh[:, :2] += center
         
@@ -464,8 +361,8 @@ class ToTorchTensors(object):
         sax_image = sample['Sax_Array']
         mesh = sample['Mesh']
         
-        mesh[:, 0] /= sax_image.shape[0]
-        mesh[:, 1] /= sax_image.shape[1]
+        mesh[:, 0] /= sax_image.shape[1]
+        mesh[:, 1] /= sax_image.shape[0]
         mesh[:, 2] /= sax_image.shape[2]
         
         sax_image_tensor = torch.from_numpy(sax_image.transpose(2, 0, 1)).unsqueeze(0).float()
@@ -484,8 +381,8 @@ class ToTorchTensorsTest(object):
         sax_image = sample['Sax_Array']
         mesh = sample['Mesh']
         
-        mesh[:, 0] /= sax_image.shape[0]
-        mesh[:, 1] /= sax_image.shape[1]
+        mesh[:, 0] /= sax_image.shape[1]
+        mesh[:, 1] /= sax_image.shape[0]
         mesh[:, 2] /= sax_image.shape[2]
         
         sax_image_tensor = torch.from_numpy(sax_image.transpose(2, 0, 1)).unsqueeze(0).float()

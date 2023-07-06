@@ -316,7 +316,7 @@ if __name__ == "__main__":
 
     parser.add_argument("--grad_prob", default = 1.0, type = float)
     
-    parser.add_argument("--n_skips", default = 2, type = int)    
+    parser.add_argument("--n_skips", default = 0, type = int)    
     parser.add_argument("--cuda_device", default = 0, type = int)
     
     parser.add_argument("--load", default = "", type = str)
