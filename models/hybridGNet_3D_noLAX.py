@@ -46,7 +46,6 @@ class Encoder3D(nn.Module):
 
         return mu, sigma, [l6, l5, l4, l3]
 
-
 class GConv(nn.Module):
     def __init__(self, in_channels, out_channels, K = 6):
         super(GConv, self).__init__()
