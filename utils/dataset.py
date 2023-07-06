@@ -54,6 +54,8 @@ class CardiacImageMeshDataset(Dataset):
         LAX_3CH_PATH = os.path.join(LAX_PATH, "3CH", '0001')
         LAX_4CH_PATH = os.path.join(LAX_PATH, "4CH", '0001')
         
+        SAXIMAGE_DICOM = SAXImage(SAX_PATH)
+        
         VTK_SAX_PATH = os.path.join("../Backup/Dataset/Images/SAX_VTK", str(subject), "image_SAX_%s.vtk" % time[-3:])
         SaxImage = SAXImage2(VTK_SAX_PATH)
         SaxImage_array = SaxImage.pixel_array
@@ -92,7 +94,7 @@ class CardiacImageMeshDataset(Dataset):
         else:
             raise ValueError("Mesh type not supported")
 
-        sample = {'SAX': SaxImage, 'LAX2CH': Lax2CH, 'LAX3CH': Lax3CH, 'LAX4CH': Lax4CH, 'Mesh': mesh,
+        sample = {'SAX': SaxImage, 'SAXIMAGE': SAXIMAGE_DICOM, 'LAX2CH': Lax2CH, 'LAX3CH': Lax3CH, 'LAX4CH': Lax4CH, 'Mesh': mesh,
                 'Sax_Array': SaxImage_array, 'Lax2CH_Array': Lax2CH_array, 'Lax3CH_Array': Lax3CH_array, 'Lax4CH_Array': Lax4CH_array}
         
         if self.transform:
@@ -112,7 +114,7 @@ class AlignMeshWithSaxImage(object):
     """
 
     def __call__(self, sample):
-        sax_image = sample['SAX']
+        sax_image = sample['SAX_VTK']
         mesh = sample['Mesh']
         
         # Get the origin of the image
@@ -447,7 +449,7 @@ class RandomScalingBoth(object):
         
         sax_array, mesh = pad_or_crop_image_and_mesh(sax_array, mesh, new_sax_h, new_sax_w, SAX_IMAGE_SHAPE)
         
-        SAX = sample['SAX'].SaxImage
+        SAX = sample['SAXIMAGE'].SaxImage
         LAX2CH = sample['LAX2CH'].itkimage
         LAX3CH = sample['LAX3CH'].itkimage
         LAX4CH = sample['LAX4CH'].itkimage
@@ -491,7 +493,7 @@ class RandomCropBoth(object):
         sax_array = sample['Sax_Array']
         mesh = sample['Mesh']
               
-        resize_h_factor = np.random.uniform(0.70, 1.30)
+        resize_h_factor = np.random.uniform(0.70, 1.0)
         resize_w_factor = np.random.uniform(0.70, 1.30)
                 
         sax_h, sax_w, sax_z = sax_array.shape
@@ -510,7 +512,7 @@ class RandomCropBoth(object):
         
         sax_array, mesh = pad_or_crop_image_and_mesh(sax_array, mesh, new_sax_h, new_sax_w, SAX_IMAGE_SHAPE)
         
-        SAX = sample['SAX'].SaxImage
+        SAX = sample['SAXIMAGE'].SaxImage
         LAX2CH = sample['LAX2CH'].itkimage
         LAX3CH = sample['LAX3CH'].itkimage
         LAX4CH = sample['LAX4CH'].itkimage
