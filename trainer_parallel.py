@@ -81,6 +81,15 @@ def trainer(train_dataset, val_dataset, models, names, configs, config):
         writers.append(writer)
         folders.append(folder)
 
+    for j in range(len(models)):
+        folder = folders[j]
+        config = configs[j].copy()
+        config['device'] = str(config['device'])
+        config['finished'] = False
+        
+        with open(os.path.join(folder, 'config.json'), 'w') as f:
+            json.dump(config, f)
+
     best_mse = [1e12] * len(models)
 
     print('Training ...')
