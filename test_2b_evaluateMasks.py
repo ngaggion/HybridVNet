@@ -58,7 +58,7 @@ def evaluate_model(models_path):
     models = load_folder(models_path)
     
     func = partial(eval)
-    with Pool(8) as p:
+    with Pool(4) as p:
         p.map(func, models)
         
 

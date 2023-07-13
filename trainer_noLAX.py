@@ -195,7 +195,7 @@ def trainer(train_dataset, val_dataset, model, config):
             # one step of the optmizer (using the gradients from backpropagation)
             optimizer.step()
             
-            train_kld_loss_avg[-1] += model.kld_weight * kld_loss.item()
+            train_kld_loss_avg[-1] += kld_loss.item()
             train_rec_loss_avg[-1] += outloss.item()
             train_loss_avg[-1] += loss.item()
             
@@ -386,7 +386,7 @@ if __name__ == "__main__":
                                     AlignMeshWithSaxImage(),
                                     RandomScaling(),
                                     Rotate(config['rotate']),
-                                    AugColor(0.3),
+                                    AugColor(0.5),
                                     ToTorchTensors()
                                 ])
         
@@ -405,7 +405,7 @@ if __name__ == "__main__":
                                     RandomScaling(),
                                     Rotate(config['rotate']),
                                     CropSax(),
-                                    AugColor(0.3),
+                                    AugColor(0.5),
                                     ToTorchTensors()
                                 ])
         

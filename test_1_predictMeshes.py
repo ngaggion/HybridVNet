@@ -44,7 +44,7 @@ def configure_model(config):
     
     # Initialize and load model
     
-    if "no_lax" in config['name']:
+    if "noLAX" in config['name']:
         model = HybridGNet3D_noLAX(config, D_t, U_t, A_t, skip_connections).float().to(device)
     else:    
         model = HybridGNet3D(config, D_t, U_t, A_t, skip_connections).float().to(device)
@@ -130,7 +130,7 @@ def segmentDataset(config, model, test_dataset, meshes_path, model_out_path):
             subj_time_path = os.path.join(meshes_path, subject.astype('str'), time)
             os.makedirs(subj_time_path, exist_ok=True)
 
-            if "no_lax" in config['name']:
+            if "noLAX" in config['name']:
                 output, _ = model(image.unsqueeze(0))
             else:
                 output, _ = model(image.unsqueeze(0), lax2ch.unsqueeze(0), lax3ch.unsqueeze(0), lax4ch.unsqueeze(0))
@@ -191,7 +191,7 @@ if __name__ == "__main__":
         os.makedirs(meshes_path, exist_ok=True)
 
         model = configure_model(config)
-        model.load_state_dict(torch.load(os.path.join(model_path, "bestMSE.pt"), map_location=config['device']))
+        model.load_state_dict(torch.load(os.path.join(model_path, "final.pt"), map_location=config['device']))
         faces = np.load(config['faces_path']).astype(np.int32)
 
         part_file = "../Dataset/test_split.csv"

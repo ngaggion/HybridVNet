@@ -386,7 +386,7 @@ if __name__ == "__main__":
                                     AlignMeshWithSaxImage(),
                                     RandomScalingBoth(),
                                     Rotate(config['rotate']),
-                                    AugColor(0.2),
+                                    AugColor(0.5),
                                     ToTorchTensors()
                                 ])
         
@@ -405,7 +405,7 @@ if __name__ == "__main__":
                                     RandomScalingBoth(),
                                     Rotate(config['rotate']),
                                     CropSax(),
-                                    AugColor(0.2),
+                                    AugColor(0.5),
                                     ToTorchTensors()
                                 ])
         

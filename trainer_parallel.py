@@ -282,9 +282,14 @@ def trainer(train_dataset, val_dataset, models, names, configs, config):
             torch.save(models[j].state_dict(), os.path.join(folders[j], "final.pt"))
         
     
-    with open(os.path.join(folder, 'config.json'), 'w') as f:
+    for j in range(len(models)):
+        folder = folders[j]
+        config = configs[j]
+        config['device'] = str(config['device'])
         config['finished'] = True
-        json.dump(config, f)
+        
+        with open(os.path.join(folder, 'config.json'), 'w') as f:
+            json.dump(config, f)
 
         
 if __name__ == "__main__":
@@ -433,24 +438,24 @@ if __name__ == "__main__":
     configs = []
     
     config1 = config.copy()
-    config1['name'] = 'WDS_1_WL_0.01_3D_32_2D_8_KL_1e-4'
+    config1['name'] = 'ROI_WDS_1_WL_0.1_3D_32_2D_8_KL_1e-5'
     config1['latents3D'] = 32
     config1['latents2D'] = 8
-    config1['kld_weight'] = 1e-4
+    config1['kld_weight'] = 1e-5
     config1['w_ds'] = 1
-    config1['w_laplacian'] = 0.01
+    config1['w_laplacian'] = 0.1
     
     models.append(HybridGNet3D(config1, D_t, U_t, A_t, None).float())
     names.append(config1['name'])
     configs.append(config1)    
     
     config2 = config.copy()
-    config2['name'] = 'WDS_1_WL_0.01_3D_32_2D_8_KL_1e-5'
+    config2['name'] = 'WDS_1_WL_0.001_3D_32_2D_8_KL_1e-5'
     config2['latents3D'] = 32
     config2['latents2D'] = 8
     config2['kld_weight'] = 1e-5
     config2['w_ds'] = 1
-    config2['w_laplacian'] = 0.01
+    config2['w_laplacian'] = 0.001
     
     models.append(HybridGNet3D(config2, D_t, U_t, A_t, None).float())
     names.append(config2['name'])

@@ -201,7 +201,7 @@ if __name__ == "__main__":
         # Create a partial function with the common arguments
         func = partial(process_subject, out_path=out_path, faces=faces, subs=subs, evaluate=evaluate, overwrite=overwrite)
         
-        with Pool(8) as p:
+        with Pool(4) as p:
             p.map(func, subjects)
             
         print("")
