@@ -27,7 +27,7 @@ np.random.seed(12)
 
 import gc
 
-def well_shaped_loss(nodes, index_a, index_b):
+def wellShapedLoss(nodes, index_a, index_b):
     edges_a = nodes[:, index_a, :]
     edges_b = nodes[:, index_b, :]
     edges = edges_a - edges_b
@@ -60,9 +60,27 @@ def trainer(train_dataset, val_dataset, model, config):
 
     train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=config['batch_size'], shuffle=True, num_workers=4)
     val_loader = torch.utils.data.DataLoader(val_dataset, batch_size=config['val_batch_size'], num_workers=2)
-
-    optimizer = torch.optim.Adam(params=model.parameters(), lr=config['lr'], weight_decay=config['weight_decay'])
     
+    '''
+    # froze encoder weights
+    if not config['surface']:
+        encoder_params = []
+        other_params = []
+
+        for name, param in model.named_parameters():
+            if any(name.startswith(enc_name) for enc_name in ['encoder', 'lax2ch_encoder', 'lax3ch_encoder', 'lax4ch_encoder']):
+                encoder_params.append(param)
+            else:
+                other_params.append(param)
+        
+        # Only optimize the non-encoder parameters initially
+        optimizer = torch.optim.Adam(params=other_params, lr=config['lr'], weight_decay=config['weight_decay'])
+    else:
+        optimizer = torch.optim.Adam(params=model.parameters(), lr=config['lr'], weight_decay=config['weight_decay'])
+    '''  
+      
+    optimizer = torch.optim.Adam(params=model.parameters(), lr=config['lr'], weight_decay=config['weight_decay'])
+        
     tensorboard = "weights"
     folder = setup_tensorboard_log_directory(tensorboard, config)
     writer = SummaryWriter(log_dir=folder)
@@ -111,8 +129,16 @@ def trainer(train_dataset, val_dataset, model, config):
     train_ds_loss = []
     val_loss_avg = []
 
-
     for epoch in range(1, config['epochs'] + 1):
+        '''
+        if epoch == 50 and not config['surface']:
+            # Unfreeze the encoder parameters
+            for param in encoder_params:
+                param.requires_grad = True
+
+            # Add the encoder parameters to the optimizer
+            optimizer.add_param_group({'params': encoder_params})
+        '''
         model.train()
 
         train_loss_avg.append(0)
@@ -180,7 +206,7 @@ def trainer(train_dataset, val_dataset, model, config):
                 loss_laplacian = 0
 
             if w_shape > 0 and not config['surface']:
-                well_shaped_loss = well_shaped_loss(out, index_a, index_b)
+                well_shaped_loss = wellShapedLoss(out, index_a, index_b)
                 train_w_shape_loss[-1] += well_shaped_loss.item()
             else:
                 well_shaped_loss = 0
@@ -195,7 +221,7 @@ def trainer(train_dataset, val_dataset, model, config):
             # one step of the optmizer (using the gradients from backpropagation)
             optimizer.step()
             
-            train_kld_loss_avg[-1] += model.kld_weight * kld_loss.item()
+            train_kld_loss_avg[-1] += kld_loss.item()
             train_rec_loss_avg[-1] += outloss.item()
             train_loss_avg[-1] += loss.item()
             
@@ -329,10 +355,10 @@ if __name__ == "__main__":
     parser.add_argument("--volumetric", dest='surface', action='store_false')
     parser.set_defaults(surface=True)
 
-    parser.add_argument("--latents3D", default = 64, type = int)
-    parser.add_argument("--latents2D", default = 16, type = int)
+    parser.add_argument("--latents3D", default = 32, type = int)
+    parser.add_argument("--latents2D", default = 8, type = int)
     
-    parser.add_argument("--rotate", default=10, type=int)
+    parser.add_argument("--rotate", default=30, type=int)
 
     config = parser.parse_args()
     config = vars(config)
@@ -435,6 +461,15 @@ if __name__ == "__main__":
     if config['load'] != "":
         model.load_state_dict(torch.load("weights/" + config['load'] + "/final.pt"), strict=False)
         print('Model loaded')
-
+        
+    '''    
+    checkpoint = torch.load('weights/ROI_WDS_1_WL_0.01_3D_32_2D_8_KL_1e-5/final.pt')
+    checkpoint = {k: v for k, v in checkpoint.items() if "encoder" in k}    
+    
+    model_dict = model.state_dict()
+    model_dict.update(checkpoint)
+    model.load_state_dict(model_dict)
+    '''
+    
     # Train the model
     trainer(train_dataset, val_dataset, model, config)

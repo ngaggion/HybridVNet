@@ -27,7 +27,7 @@ np.random.seed(12)
 
 import gc
 
-def well_shaped_loss(nodes, index_a, index_b):
+def wellShapedLoss(nodes, index_a, index_b):
     edges_a = nodes[:, index_a, :]
     edges_b = nodes[:, index_b, :]
     edges = edges_a - edges_b
@@ -176,7 +176,7 @@ def trainer(train_dataset, val_dataset, models, names, configs, config):
                     loss_laplacian = 0
 
                 if w_shape > 0 and not config['surface']:
-                    well_shaped_loss = well_shaped_loss(out, index_a, index_b)
+                    well_shaped_loss = wellShapedLoss(out, index_a, index_b)
                     train_w_shape_loss[j] += well_shaped_loss.item()
                 else:
                     well_shaped_loss = 0
@@ -447,28 +447,43 @@ if __name__ == "__main__":
     configs = []
     
     config1 = config.copy()
-    config1['name'] = 'ROI_WDS_1_WL_0.1_3D_32_2D_8_KL_1e-5'
+    config1['name'] = 'VOLUMETRIC_ROI_WDS_1_REG_0.01_3D_32_2D_8_KL_1e-5'
     config1['latents3D'] = 32
     config1['latents2D'] = 8
     config1['kld_weight'] = 1e-5
     config1['w_ds'] = 1
-    config1['w_laplacian'] = 0.1
+    config1['w_laplacian'] = 0
+    config1['w_shape'] = 0.01
     
     models.append(HybridGNet3D(config1, D_t, U_t, A_t, None).float())
     names.append(config1['name'])
     configs.append(config1)    
     
     config2 = config.copy()
-    config2['name'] = 'WDS_1_WL_0.001_3D_32_2D_8_KL_1e-5'
+    config2['name'] = 'VOLUMETRIC_ROI_WDS_1_REG_0.001_3D_32_2D_8_KL_1e-5'
     config2['latents3D'] = 32
     config2['latents2D'] = 8
     config2['kld_weight'] = 1e-5
     config2['w_ds'] = 1
-    config2['w_laplacian'] = 0.001
+    config2['w_laplacian'] = 0
+    config2['w_shape'] = 0.001
     
     models.append(HybridGNet3D(config2, D_t, U_t, A_t, None).float())
     names.append(config2['name'])
     configs.append(config2)
+    
+    config3 = config.copy()
+    config3['name'] = 'VOLUMETRIC_ROI_WDS_1_REG_0_3D_32_2D_8_KL_1e-5'
+    config3['latents3D'] = 32
+    config3['latents2D'] = 8
+    config3['kld_weight'] = 1e-5
+    config3['w_ds'] = 1
+    config3['w_laplacian'] = 0
+    config3['w_shape'] = 0
+    
+    models.append(HybridGNet3D(config3, D_t, U_t, A_t, None).float())
+    names.append(config3['name'])
+    configs.append(config3)
         
     # Train the model
     trainer(train_dataset, val_dataset, models, names, configs, config)

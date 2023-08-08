@@ -108,7 +108,7 @@ def segmentDataset(config, model, test_dataset, meshes_path, model_out_path):
     
     evalDF = pd.DataFrame(columns=['Subject','Time', 'Subpart', 'MSE', 'MAE', 'RMSE'])
 
-    subpart_list = np.loadtxt("../Dataset/SurfaceFiles/subparts_fhm.txt", dtype=str)
+    subpart_list = np.loadtxt("../Dataset/VolumetricFiles/vol_subparts.txt", dtype=str)
     subparts = ["LV", "RV", "LA", "RA", "aorta"]
     subpart_indices = []
     for subpart in subparts:
@@ -138,7 +138,7 @@ def segmentDataset(config, model, test_dataset, meshes_path, model_out_path):
             mesh = go_back(config, vtk, output.squeeze(0).cpu().numpy(), x0, y0)
             
             # gt_path = "../Dataset/Subjects/" + subject.astype('str') + "/mesh/" + time + "/surface.npy"
-            gt_path = os.path.join("../Backup/Dataset/Meshes/DownsampledMeshes/", str(subject), time, "fhm.npy")
+            gt_path = os.path.join("../Backup/Dataset/Meshes/VolumetricMeshes/", str(subject), time, "fhm_vol.npy")
             
             target = np.load(gt_path)
 
@@ -156,6 +156,8 @@ def segmentDataset(config, model, test_dataset, meshes_path, model_out_path):
                 evalDF.loc[j] = [subject, time, subparts[i], MSE, MAE, RMSE]                
                 j+=1
                 
+                # print('\r', t + 1, 'of', len(test_dataset), 'subpart', subparts[i], 'MSE', MSE, 'MAE', MAE, 'RMSE', RMSE, end='')
+                
     evalDF.to_csv(os.path.join(model_out_path, 'eval.csv'))
 
 if __name__ == "__main__":
@@ -164,7 +166,7 @@ if __name__ == "__main__":
             self.v = v
             self.f = f
 
-    input = "weights/Surface"
+    input = "weights/Volumetric"
     output = "../Predictions"
     
     try:

@@ -171,19 +171,19 @@ def process_subject(subject, out_path, faces, subs, evaluate, overwrite):
         
 
 if __name__ == "__main__":
-    input = "../Predictions/Surface/"
+    input = "../Predictions/Volumetric/"
     overwrite = True
     evaluate = True
     
-    faces = np.load("../Dataset/SurfaceFiles/faces_fhm_numpy.npy")
-    subs = np.loadtxt("../Dataset/SurfaceFiles/subparts_fhm.txt", dtype=str)
+    faces = np.load("../Dataset/VolumetricFiles/vol_faces.npy")
+    subs = np.loadtxt("../Dataset/VolumetricFiles/vol_subparts.txt", dtype=str)
 
     models = load_folder(input)
     
     for model_path in models:
-        config = json.load(open(os.path.join(model_path.replace('Predictions/Surface', 'Code/weights/Surface'), "config.json")))
+        config = json.load(open(os.path.join(model_path.replace('Predictions/Volumetric', 'Code/weights/Volumetric'), "config.json")))
         
-        if config['finished'] and os.path.isfile(os.path.join(model_path.replace('Predictions/Surface', 'Code/weights/Surface'), "segmented_mask.txt")):
+        if config['finished'] and os.path.isfile(os.path.join(model_path.replace('Predictions/Volumetric', 'Code/weights/Volumetric'), "segmented_mask.txt")):
             continue
         
         print("Segmenting model", model_path.split("/")[-1])
@@ -201,12 +201,12 @@ if __name__ == "__main__":
         # Create a partial function with the common arguments
         func = partial(process_subject, out_path=out_path, faces=faces, subs=subs, evaluate=evaluate, overwrite=overwrite)
         
-        with Pool(4) as p:
+        with Pool(8) as p:
             p.map(func, subjects)
             
         print("")
 
         if config['finished']:
             # create a segmented.txt file to indicate that the model has been segmented
-            with open(os.path.join(model_path.replace('Predictions/Surface', 'Code/weights/Surface'), "segmented_mask.txt"), "w") as f:
+            with open(os.path.join(model_path.replace('Predictions/Volumetric', 'Code/weights/Volumetric'), "segmented_mask.txt"), "w") as f:
                 f.write("True")
