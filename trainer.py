@@ -374,6 +374,10 @@ if __name__ == "__main__":
         faces_path = "../Dataset/VolumetricFiles/vol_faces.npy"
         matrix_path = "../Dataset/VolumetricFiles/Matrices_volumetric.pkl"
 
+    
+    faces_path = "/home/ngaggion/DATA/HybridGNet3D/Backup/Dataset/Meshes/FullMeshes_files/unified_subset_faces.npy"
+    matrix_path = "../Backup/Dataset/Meshes/FullMeshes_files/unified_downsample_train.pkl"
+    
     faces = np.load(faces_path).astype('int')
     config.update({'faces_path': faces_path, 'matrix_path': matrix_path})
     
@@ -461,15 +465,6 @@ if __name__ == "__main__":
     if config['load'] != "":
         model.load_state_dict(torch.load("weights/" + config['load'] + "/final.pt"), strict=False)
         print('Model loaded')
-        
-    '''    
-    checkpoint = torch.load('weights/ROI_WDS_1_WL_0.01_3D_32_2D_8_KL_1e-5/final.pt')
-    checkpoint = {k: v for k, v in checkpoint.items() if "encoder" in k}    
-    
-    model_dict = model.state_dict()
-    model_dict.update(checkpoint)
-    model.load_state_dict(model_dict)
-    '''
-    
+            
     # Train the model
     trainer(train_dataset, val_dataset, model, config)

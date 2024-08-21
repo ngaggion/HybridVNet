@@ -57,6 +57,9 @@ class CardiacImageMeshDataset(Dataset):
         elif self.mesh_type == 'Volumetric':
             mesh_path = os.path.join("../Backup/Dataset/Meshes/VolumetricMeshes/", str(subject), time, "fhm_vol.npy")
             mesh = np.load(mesh_path)
+        elif self.mesh_type == 'Surface Full':
+            mesh_path = os.path.join("../Backup/Dataset/Meshes/FullMeshes/", str(subject), time, "fhm.npy")
+            mesh = np.load(mesh_path)
         else:
             raise ValueError("Mesh type not supported")
 

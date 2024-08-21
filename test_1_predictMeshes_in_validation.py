@@ -15,7 +15,6 @@ from utils.dataset import (CardiacImageMeshDataset, ToTorchTensorsTest, AlignMes
 from utils.file_utils import load_folder
 
 import pandas as pd
-import time as time_lib
 
 def configure_model(config):
     matrix_path = config['matrix_path']
@@ -109,15 +108,12 @@ def segmentDataset(config, model, test_dataset, meshes_path, model_out_path):
     
     evalDF = pd.DataFrame(columns=['Subject','Time', 'Subpart', 'MSE', 'MAE', 'RMSE'])
 
-    subpart_list = np.loadtxt("../Dataset/VolumetricFiles/vol_subparts.txt", dtype=str)
+    subpart_list = np.loadtxt("../Dataset/SurfaceFiles/subparts_fhm.txt", dtype=str)
     subparts = ["LV", "RV", "LA", "RA", "aorta"]
     subpart_indices = []
     for subpart in subparts:
         subpart_indices.append(extract(subpart, subpart_list))
 
-    average_time = 0
-    n_meshes = 0
-    
     j = 0
     with torch.no_grad():
         for t in range(len(test_dataset)):
@@ -134,22 +130,15 @@ def segmentDataset(config, model, test_dataset, meshes_path, model_out_path):
             subj_time_path = os.path.join(meshes_path, subject.astype('str'), time)
             os.makedirs(subj_time_path, exist_ok=True)
 
-            t0 = time_lib.time()
-            
             if "noLAX" in config['name']:
                 output, _ = model(image.unsqueeze(0))
             else:
                 output, _ = model(image.unsqueeze(0), lax2ch.unsqueeze(0), lax3ch.unsqueeze(0), lax4ch.unsqueeze(0))
-            
-            t1 = time_lib.time()
-            
-            average_time += t1 - t0
-            n_meshes += 1
-                                  
+                        
             mesh = go_back(config, vtk, output.squeeze(0).cpu().numpy(), x0, y0)
             
             # gt_path = "../Dataset/Subjects/" + subject.astype('str') + "/mesh/" + time + "/surface.npy"
-            gt_path = os.path.join("../Backup/Dataset/Meshes/VolumetricMeshes/", str(subject), time, "fhm_vol.npy")
+            gt_path = os.path.join("../Backup/Dataset/Meshes/DownsampledMeshes/", str(subject), time, "fhm.npy")
             
             target = np.load(gt_path)
 
@@ -167,10 +156,6 @@ def segmentDataset(config, model, test_dataset, meshes_path, model_out_path):
                 evalDF.loc[j] = [subject, time, subparts[i], MSE, MAE, RMSE]                
                 j+=1
                 
-                # print('\r', t + 1, 'of', len(test_dataset), 'subpart', subparts[i], 'MSE', MSE, 'MAE', MAE, 'RMSE', RMSE, end='')
-        
-        print("Average time:", average_time / n_meshes)
-        
     evalDF.to_csv(os.path.join(model_out_path, 'eval.csv'))
 
 if __name__ == "__main__":
@@ -179,28 +164,34 @@ if __name__ == "__main__":
             self.v = v
             self.f = f
 
-    input = "weights/Volumetric"
-    output = "../Predictions"
+    input = "weights/Surface"
+    output = "../PredictionsVal/"
     
     try:
         os.makedirs(output, exist_ok=True)
     except:
         pass
 
-    models = load_folder(input)
+    models = ["weights/Surface/Old/surface_roi_ds_1_lap_0",
+            "weights/Surface/WDS_1_WL_0.001_3D_32_2D_8_KL_1e-5",
+            "weights/Surface/ROI_WDS_1_WL_0.01_3D_32_2D_8_KL_1e-5",
+            "weights/Surface/ROI_WDS_1_WL_0.1_3D_32_2D_8_KL_1e-5"]
+    
+    labels = [r"$\lambda_{lap} =$ 0", r"$\lambda_{lap} =$ 0.001", r"$\lambda_{lap} =$ 0.01", r"$\lambda_{lap} =$ 0.1"]
 
-    for model_path in models:
-        config = json.load(open(os.path.join(model_path, "config.json")))
+    for i in  range(0, len(models)):
+        model_path = models[i]
         
-        if config['finished'] and os.path.isfile(os.path.join(model_path, "segmented.txt")):
-            continue
+        config = json.load(open(os.path.join(model_path, "config.json")))
         
         out_path = os.path.join(output, "Surface" if config['surface'] else "Volumetric")
             
         if not os.path.exists(out_path):
             os.makedirs(out_path, exist_ok=True)
+            
+        name = labels[i]
                 
-        model_out_path = os.path.join(out_path, config['name'])
+        model_out_path = os.path.join(out_path, name)
         os.makedirs(model_out_path, exist_ok=True)
 
         meshes_path = os.path.join(model_out_path, "Meshes")
@@ -210,7 +201,7 @@ if __name__ == "__main__":
         model.load_state_dict(torch.load(os.path.join(model_path, "final.pt"), map_location=config['device']))
         faces = np.load(config['faces_path']).astype(np.int32)
 
-        part_file = "../Dataset/test_split.csv"
+        part_file = "../Dataset/val_split.csv"
 
         transform = transforms.Compose([
             AlignMeshWithSaxImage(),
