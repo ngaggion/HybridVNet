@@ -1,11 +1,10 @@
 import json
 import os
 import torch
-from models.hybridGNet_3D import HybridGNet3D
-from models.hybridGNet_3D_noLAX import HybridGNet3D as HybridGNet3D_noLAX
 from torchvision import transforms
 import SimpleITK as sitk
 import meshio 
+import numpy as np
 
 from utils.dataset_inference_w_LAX_example import PredictDataset, ToTorchTensors, PadArraysToSquareShape
 from utils.inference_aux import configure_model, go_back, save_nii, get_mask_image
@@ -56,9 +55,6 @@ def predict_meshes(config, model, faces, predict_dataset, meshes_path):
             save_nii(path.replace(".stl", ".nii.gz"), mask_seg, sax_image.GetOrigin(), sax_image.GetSpacing(), sax_image.GetDirection())
 
 if __name__ == "__main__":
-    output_dir = "../Abdul/Predictions"
-    os.makedirs(output_dir, exist_ok=True)
-
     model_path = "../HybridVNet_weights/FullSAX_2CH_3CH_4CH"
     #model_path = "../HybridVNet_weights/FullSAX_noLAX"
 
