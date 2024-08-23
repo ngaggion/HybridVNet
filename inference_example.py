@@ -149,7 +149,7 @@ def predict_meshes(config, model, faces, predict_dataset, meshes_path):
             )
 
             # Save as STL
-            path = "../Abdul/dataset_abdul_test/predictions/mesh/" + str(subject) + "/" 
+            path = meshes_path + str(subject) + "/" 
             os.makedirs(path, exist_ok=True)
             path += str(time).replace('.nii.gz',".stl")
             
@@ -174,15 +174,6 @@ if __name__ == "__main__":
 
     config = json.load(open(os.path.join(model_path, "config.json")))
     
-    out_path = os.path.join(output_dir, "Surface" if config['surface'] else "Volumetric")
-    os.makedirs(out_path, exist_ok=True)
-            
-    model_out_path = os.path.join(out_path, config['name'])
-    os.makedirs(model_out_path, exist_ok=True)
-
-    meshes_path = os.path.join(model_out_path, "Meshes")
-    os.makedirs(meshes_path, exist_ok=True)
-
     model, faces = configure_model(config)
     model.load_state_dict(torch.load(os.path.join(model_path, "final.pt"), map_location=config['device']))
 
@@ -193,6 +184,6 @@ if __name__ == "__main__":
     
     print("Predicting meshes for model", config['name'])
 
-    predict_dataset = PredictDataset("../Abdul/dataset_abdul_test/images", transform=transform)
-        
-    predict_meshes(config, model, faces, predict_dataset, meshes_path)
+    predict_dataset = PredictDataset("../DATA/Abdul/dataset_abdul_test/images", transform=transform)
+    
+    predict_meshes(config, model, faces, predict_dataset, "../DATA/Abdul/dataset_abdul_test/predictions/mesh")
