@@ -22,6 +22,67 @@ Main dependencies include:
 
 Install instructions soon.
 
+## Usage
+
+Download the Docker image from the Docker Hub repository by running:
+
+```bash
+docker pull ngaggion/hybridvnet:latest
+```
+
+Then, run the Docker container with the following command:
+
+```bash
+MOUNT="YOUR_LOCAL_INFORMATION_PATH"
+
+docker run -it --gpus all \
+    -v $MOUNT:/DATA/ \
+    hybrivnet:latest
+```
+
+It's recommended to always pull from the repo when starting the docker.
+
+```bash
+git pull
+```
+
+After using the container, it's recommended to restrict access to the X server with the following command:
+
+```bash
+xhost -local:docker
+```
+
+### Docker Usage Notes
+
+To enable GPU support within the Docker container, it's required to install the nvidia-docker2 package. **Please note that we are using CUDA 11.8, given your GPU restrictions you may want to build your own image.** In this case, you'll **only** need to modify the first line of the Dockerfile using any official pytorch >= 2.0.0 docker image that works with your hardware and build it from scratch.
+
+For Ubuntu-based distributions please follow these steps:
+
+1. **Add the GPG key:**
+
+    ```bash
+    curl -s -L https://nvidia.github.io/nvidia-docker/gpgkey | sudo gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg
+    ```
+
+2. **Add the repository:**
+
+    ```bash
+    distribution=$(. /etc/os-release;echo $ID$VERSION_ID)
+    echo "deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://nvidia.github.io/nvidia-docker/$distribution/$(arch)/" | sudo tee /etc/apt/sources.list.d/nvidia-docker.list
+    ```
+
+3. **Update your package list:**
+
+    ```bash
+    sudo apt-get update
+    ```
+
+4. **Install NVIDIA Docker2:**
+
+    ```bash
+    sudo apt-get install -y nvidia-docker2
+    ```
+
 ## Citation
 
 If you use this code in your research, please cite our paper:
