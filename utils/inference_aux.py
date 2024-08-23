@@ -5,6 +5,8 @@ import torch
 from models.utils import scipy_to_torch_sparse
 import SimpleITK as sitk
 from trimesh import Trimesh
+from models.hybridGNet_3D import HybridGNet3D
+from models.hybridGNet_3D_noLAX import HybridGNet3D as HybridGNet3D_noLAX
 
 VOXEL_SIZE = 1.0
 
