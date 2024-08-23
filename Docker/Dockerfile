@@ -41,8 +41,7 @@ RUN apt-get update && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* 
 
-
-RUN pip install vedo trimesh && \
+RUN pip install trimesh vedo && \
     pip cache purge && \
     rm -rf /root/.cache/pip
 
@@ -59,4 +58,6 @@ RUN wget https://github.com/git-lfs/git-lfs/releases/download/v3.5.1/git-lfs-lin
 RUN git clone https://github.com/ngaggion/HybridGNet_3D.git
 
 # Set the working directory
-WORKDIR /
+WORKDIR /HybridGNet_3D
+
+RUN git pull
