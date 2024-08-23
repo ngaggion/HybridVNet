@@ -22,7 +22,7 @@ Main dependencies include:
 
 Install instructions soon.
 
-## Usage
+## Docker image (for inference only)
 
 Download the Docker image from the Docker Hub repository by running:
 
