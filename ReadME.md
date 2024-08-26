@@ -9,7 +9,7 @@ This repository contains the implementation of HybridVNet, a novel architecture 
 - Generation of both surface and tetrahedral meshes
 - Novel differentiable regularization term for tetrahedral meshes
 
-## Dependencies
+### Dependencies
 
 Main dependencies include:
 - PyTorch
@@ -20,68 +20,74 @@ Main dependencies include:
 - Matplotlib
 - SimpleITK
 
-Install instructions soon.
+Training models with soon be available.
 
-## Docker image (for inference only)
+## Inference
 
-Download the Docker image from the Docker Hub repository by running:
+We provide pre-trained weights for two model variants:
+1. Complete short-axis image model
+2. Multi-view long axis model
+
+You can download the weights from our [Hugging Face repository](https://huggingface.co/datasets/ngaggion/HybridVNet_Weights/tree/main).
+
+### Input Image Sizes
+
+- Short-axis images: (210, 210, 16)
+- Long-axis images (2CH, 3CH, 4CH): (224, 224, 1) each
+
+Note: If you don't have the 3CH long-axis image, you can use an empty image as input.
+
+### Docker Image
+
+We offer a Docker image with pre-downloaded weights for easy setup:
+
+1. Pull the Docker image:
+   ```bash
+   docker pull ngaggion/hybridvnet:latest
+   ```
+
+2. Run the Docker container:
+   ```bash
+   MOUNT="YOUR_LOCAL_INFORMATION_PATH"
+   docker run -it --gpus all -v $MOUNT:/DATA/ hybrivnet:latest
+   ```
+
+3. (Optional) Update the repository:
+   ```bash
+   git pull
+   ```
+
+4. After use, restrict X server access:
+   ```bash
+   xhost -local:docker
+   ```
+
+#### Docker Requirements
+
+To use GPU support, install the `nvidia-docker2` package. For Ubuntu-based distributions:
 
 ```bash
-docker pull ngaggion/hybridvnet:latest
+# Add GPG key
+curl -s -L https://nvidia.github.io/nvidia-docker/gpgkey | sudo gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg
+
+# Add repository
+distribution=$(. /etc/os-release;echo $ID$VERSION_ID)
+echo "deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://nvidia.github.io/nvidia-docker/$distribution/$(arch)/" | sudo tee /etc/apt/sources.list.d/nvidia-docker.list
+
+# Update and install
+sudo apt-get update
+sudo apt-get install -y nvidia-docker2
 ```
 
-Then, run the Docker container with the following command:
+Note: We use CUDA 11.8. If your GPU has different requirements, you may need to build your own image by modifying the Dockerfile.
 
-```bash
-MOUNT="YOUR_LOCAL_INFORMATION_PATH"
+### Example Files
 
-docker run -it --gpus all \
-    -v $MOUNT:/DATA/ \
-    hybrivnet:latest
-```
+We provide example files to help structure your dataset and inference pipeline:
+- `utils/dataset_inference_w_LAX_example.py`
+- `inference_example.py`
 
-It's recommended to always pull from the repo when starting the docker.
-
-```bash
-git pull
-```
-
-After using the container, it's recommended to restrict access to the X server with the following command:
-
-```bash
-xhost -local:docker
-```
-
-### Docker Usage Notes
-
-To enable GPU support within the Docker container, it's required to install the nvidia-docker2 package. **Please note that we are using CUDA 11.8, given your GPU restrictions you may want to build your own image.** In this case, you'll **only** need to modify the first line of the Dockerfile using any official pytorch >= 2.0.0 docker image that works with your hardware and build it from scratch.
-
-For Ubuntu-based distributions please follow these steps:
-
-1. **Add the GPG key:**
-
-    ```bash
-    curl -s -L https://nvidia.github.io/nvidia-docker/gpgkey | sudo gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg
-    ```
-
-2. **Add the repository:**
-
-    ```bash
-    distribution=$(. /etc/os-release;echo $ID$VERSION_ID)
-    echo "deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://nvidia.github.io/nvidia-docker/$distribution/$(arch)/" | sudo tee /etc/apt/sources.list.d/nvidia-docker.list
-    ```
-
-3. **Update your package list:**
-
-    ```bash
-    sudo apt-get update
-    ```
-
-4. **Install NVIDIA Docker2:**
-
-    ```bash
-    sudo apt-get install -y nvidia-docker2
-    ```
+These files demonstrate how to set up your data and run inference using HybridVNet.
 
 ## Citation
 
