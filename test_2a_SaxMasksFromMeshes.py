@@ -111,7 +111,7 @@ def get_mask_image(mesh, faces, subs, sax):
     mask_img = np.zeros((sax.height, sax.width, sax.num_slices), dtype=np.uint8)
 
     # get slice index for z direction
-    slice_idx = sax.slice_gap * range(sax.num_slices) + sax.origin[2]
+    slice_idx = sax.slice_gap * np.arange(sax.num_slices) + sax.origin[2]
 
     # create image grid
     xr = np.arange(0, mask_img.shape[1], dtype=float) * sax.spacing[0] + sax.origin[0]
@@ -172,6 +172,7 @@ def process_subject(subject, out_path, faces, subs, evaluate, overwrite):
 
 if __name__ == "__main__":
     input = "../Predictions/Surface/"
+    input = "/home/ngaggion/DATA/HybridGNet3D/BaselineChen/Surface/"
     overwrite = True
     evaluate = True
     
@@ -181,10 +182,11 @@ if __name__ == "__main__":
     models = load_folder(input)
     
     for model_path in models:
-        config = json.load(open(os.path.join(model_path.replace('Predictions/Surface', 'Code/weights/Surface'), "config.json")))
+        #config = json.load(open(os.path.join(model_path.replace('Predictions/Surface', 'Code/weights/Surface'), "config.json")))
+        config = json.load(open(os.path.join(model_path.replace('/home/ngaggion/DATA/HybridGNet3D/BaselineChen/Surface', '/home/ngaggion/DATA/HybridGNet3D/Code/weights/Chen'), "config.json")))
         
-        if config['finished'] and os.path.isfile(os.path.join(model_path.replace('Predictions/Surface', 'Code/weights/Surface'), "segmented_mask.txt")):
-            continue
+        #if config['finished'] and os.path.isfile(os.path.join(model_path.replace('Predictions/Surface', 'Code/weights/Surface'), "segmented_mask.txt")):
+        #    continue
         
         print("Segmenting model", model_path.split("/")[-1])
             

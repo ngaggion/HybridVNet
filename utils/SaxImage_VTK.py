@@ -1,86 +1,92 @@
-import vedo
 import vtk
 import os
 import logging
 import numpy as np
 
-"""
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
-WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS
-BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-"""
-
 logger = logging.getLogger("pycardiox")
-
 
 class SAXImage:
     """
-    Read SAX VTK image using vedo/vtk.
+    Read SAX VTK image using vtk.
     Note that vtk will read the image into a volume of dimension: x:width x y:height x z:slice
     """
-
     def __init__(self, filename):
         if not os.path.isfile(filename):
             logger.error(f"File {filename} does not exist.")
             raise ValueError(f"File {filename} does not exist.")
+            
         self._filename = filename
-
-        # read
-        imgvtk_reader = vtk.vtkStructuredPointsReader()
-        imgvtk_reader.SetFileName(self._filename)
-        imgvtk_reader.Update()
-
-        # origin for the volume != vtk image
-        img_data = imgvtk_reader.GetOutput()
-        self.origin = img_data.GetOrigin()
-
-        self.vol = vedo.Volume(imgvtk_reader)
-
+        
+        # read vtk file
+        self.imgvtk_reader = vtk.vtkStructuredPointsReader()
+        self.imgvtk_reader.SetFileName(self._filename)
+        self.imgvtk_reader.Update()
+        
+        # Get the output data
+        self.img_data = self.imgvtk_reader.GetOutput()
+        self.origin = self.img_data.GetOrigin()
+        
     @property
     def width(self):
-        return self.vol.dimensions()[0]
-
+        return self.img_data.GetDimensions()[0]
+        
     @property
     def height(self):
-        return self.vol.dimensions()[1]
-
+        return self.img_data.GetDimensions()[1]
+        
     @property
     def num_slices(self):
-        return self.vol.dimensions()[2]
-
+        return self.img_data.GetDimensions()[2]
+        
     @property
     def range(self):
-        return self.vol.scalarRange()
-
+        return self.img_data.GetScalarRange()
+        
     @property
     def spacing(self):
-        return self.vol.spacing()[:2]
-
+        return self.img_data.GetSpacing()[:2]
+        
     @property
     def slice_gap(self):
-        return self.vol.spacing()[-1]
-
+        return self.img_data.GetSpacing()[2]
+        
     @property
     def pixel_array(self):
         """
-        Swap axis from W x H x S into H x W x S
+        Get pixel data as numpy array and swap axes from W x H x S into H x W x S
         """
-        return np.swapaxes(self.vol.getDataArray(), 0, 1)
-
+        dims = self.img_data.GetDimensions()
+        scalars = self.img_data.GetPointData().GetScalars()
+        
+        # Get scalar type and numpy equivalent
+        vtk_data_type = scalars.GetDataType()
+        if vtk_data_type in [3, 4]:  # float type
+            np_dtype = np.float32
+        else:  # assume int16 for other types
+            np_dtype = np.int16
+            
+        # Create numpy array and copy data
+        n_points = dims[0] * dims[1] * dims[2]
+        array = np.zeros(n_points, dtype=np_dtype)
+        for i in range(n_points):
+            array[i] = scalars.GetTuple1(i)
+            
+        # Reshape to volume dimensions and transpose
+        vol_array = array.reshape([dims[2], dims[1], dims[0]])
+        return np.transpose(vol_array, (1, 2, 0))
+        
     def get_image_slice(self, sl):
+        """Get a single slice from the volume"""
         return self.pixel_array[:, :, sl]
-
+        
     def get_image_plane(self, sl):
-        """
-        Returns (point, normal_vector) tuple
-        """
-        return self.origin + [0, 0, sl * self.slice_gap], [0, 0, 1]
-
+        """Returns (point, normal_vector) tuple"""
+        return np.add(self.origin, [0, 0, sl * self.slice_gap]), [0, 0, 1]
+        
     def __repr__(self):
-        return f"Image dimension (WxH): {self.width} x {self.height}\n" \
-               f"Number of slices: {self.num_slices}\n" \
-               f"Scalar range: {self.range}\n" \
-               f"Spacing: {self.spacing}\n" \
-               f"Slice gap: {self.slice_gap}\n" \
-               f"Origin: {self.origin}"
+        return (f"Image dimension (WxH): {self.width} x {self.height}\n"
+                f"Number of slices: {self.num_slices}\n"
+                f"Scalar range: {self.range}\n"
+                f"Spacing: {self.spacing}\n"
+                f"Slice gap: {self.slice_gap}\n"
+                f"Origin: {self.origin}")

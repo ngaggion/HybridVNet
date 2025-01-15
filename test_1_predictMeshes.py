@@ -16,12 +16,28 @@ from utils.file_utils import load_folder
 
 import pandas as pd
 
+class DummyClass:
+    """Placeholder class for unpickling objects from missing modules"""
+    def __init__(self, *args, **kwargs):
+        pass
+
+class CustomUnpickler(pkl.Unpickler):
+    def find_class(self, module, name):
+        # First try the default behavior
+        try:
+            return super().find_class(module, name)
+        except (ImportError, AttributeError):
+            # If the module is psbody or any other missing module, return a dummy class
+            print(f"Creating dummy class for {module}.{name}")
+            return DummyClass
+              
+
 def configure_model(config):
     matrix_path = config['matrix_path']
  
     # Load mesh matrices and set up device
     with open(matrix_path, "rb") as f:
-        dic = pkl.load(f)
+        dic = CustomUnpickler(f).load()
 
     gpu = "cuda:" + str(config["cuda_device"])
     device = torch.device(gpu if torch.cuda.is_available() else "cpu")
@@ -164,8 +180,8 @@ if __name__ == "__main__":
             self.v = v
             self.f = f
 
-    input = "weights/Surface"
-    output = "../Predictions"
+    input = "weights/Chen"
+    output = "../BaselineChen"
     
     try:
         os.makedirs(output, exist_ok=True)
@@ -195,6 +211,7 @@ if __name__ == "__main__":
         faces = np.load(config['faces_path']).astype(np.int32)
 
         part_file = "../Dataset/test_split.csv"
+        part_file = "/home/ngaggion/DATA/HybridGNet3D/BaselineChen/ChenSplits/test_split.csv"
 
         transform = transforms.Compose([
             AlignMeshWithSaxImage(),

@@ -314,7 +314,21 @@ def trainer(train_dataset, val_dataset, model, config):
         config['finished'] = True
         json.dump(config, f)
 
-        
+class DummyClass:
+    """Placeholder class for unpickling objects from missing modules"""
+    def __init__(self, *args, **kwargs):
+        pass
+
+class CustomUnpickler(pkl.Unpickler):
+    def find_class(self, module, name):
+        # First try the default behavior
+        try:
+            return super().find_class(module, name)
+        except (ImportError, AttributeError):
+            # If the module is psbody or any other missing module, return a dummy class
+            print(f"Creating dummy class for {module}.{name}")
+            return DummyClass
+              
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     
@@ -363,8 +377,8 @@ if __name__ == "__main__":
     config = parser.parse_args()
     config = vars(config)
 
-    
-    part_file = '../Dataset/train_split.csv'
+    #part_file = '../Dataset/train_split.csv'
+    part_file = '/home/ngaggion/DATA/HybridGNet3D/BaselineChen/ChenSplits/train_split.csv'
         
     # Set surface/volumetric configs and paths
     if config['surface']:
@@ -375,19 +389,12 @@ if __name__ == "__main__":
         matrix_path = "../Dataset/VolumetricFiles/Matrices_volumetric.pkl"
 
     
-    faces_path = "/home/ngaggion/DATA/HybridGNet3D/Backup/Dataset/Meshes/FullMeshes_files/unified_subset_faces.npy"
-    matrix_path = "../Backup/Dataset/Meshes/FullMeshes_files/unified_downsample_train.pkl"
-    
     faces = np.load(faces_path).astype('int')
     config.update({'faces_path': faces_path, 'matrix_path': matrix_path})
     
     # Load mesh matrices and set up device
-    with open(matrix_path, "rb") as f:
-        class Mesh:
-            def __init__(self, v, f):
-                self.v = v
-                self.f = f
-        dic = pkl.load(f)
+    with open(matrix_path, "rb") as f:            
+        dic = CustomUnpickler(f).load()
 
     gpu = "cuda:" + str(config["cuda_device"])
     device = torch.device(gpu if torch.cuda.is_available() else "cpu")
