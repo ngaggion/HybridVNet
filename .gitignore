@@ -2,3 +2,4 @@ __pycache__
 weights
 backup
 *.vtk
+*IGNORE.py
