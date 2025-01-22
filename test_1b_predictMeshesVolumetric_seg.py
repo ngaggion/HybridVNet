@@ -192,8 +192,8 @@ if __name__ == "__main__":
             self.v = v
             self.f = f
 
-    input = "weights/Chen/Vol/"
-    output = "../BaselineChen"
+    input = "weights/"
+    output = "../Predictions"
     
     try:
         os.makedirs(output, exist_ok=True)
@@ -201,6 +201,7 @@ if __name__ == "__main__":
         pass
 
     models = load_folder(input)
+    models = [model for model in models if os.path.isfile(os.path.join(model, "config.json"))]
 
     for model_path in models:
         config = json.load(open(os.path.join(model_path, "config.json")))
@@ -224,7 +225,6 @@ if __name__ == "__main__":
         faces = np.load(config['faces_path']).astype(np.int32)
 
         part_file = "../Dataset/test_split.csv"
-        part_file = "/home/ngaggion/DATA/HybridGNet3D/BaselineChen/ChenSplits/test_split.csv"
 
         transform = transforms.Compose([
             AlignMeshWithSaxImage(),
